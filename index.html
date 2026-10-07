@@ -114,35 +114,6 @@ function save(){
   renderBadge();
 }
 
-/* ── DEMO ─────────────────────────────────────────────────── */
-const DEMO=[['Frijol negro 1 kg','7501000100011','Abarrotes',27,36,18,5],['Arroz extra 1 kg','7501000100028','Abarrotes',24,32,14,5],['Aceite vegetal 900 ml','7501000100035','Abarrotes',38,49,9,4],['Azúcar 1 kg','7501000100042','Abarrotes',25,33,12,5],['Sal de mesa 1 kg','7501000100059','Abarrotes',12,18,10,4],['Pasta spaghetti 200 g','7501000100066','Abarrotes',9,14,22,6],['Atún en agua 140 g','7501000100073','Abarrotes',17,24,15,6],['Café soluble 50 g','7501000100080','Abarrotes',44,58,7,3],['Chiles jalapeños lata','7501000100097','Abarrotes',13,19,11,4],['Leche entera 1 L','7501000200010','Lácteos',23,29,10,5],['Yogurt natural 900 g','7501000200027','Lácteos',32,42,6,3],['Queso panela 200 g','7501000200034','Lácteos',38,52,5,3],['Huevo blanco 12 pzas','7501000200041','Lácteos',39,50,8,4],['Crema ácida 450 g','7501000200058','Lácteos',29,39,5,3],['Refresco cola 2 L','7501000300019','Bebidas',28,39,16,6],['Agua natural 1.5 L','7501000300026','Bebidas',11,17,20,8],['Jugo de naranja 1 L','7501000300033','Bebidas',24,33,9,4],['Bebida energética 600 ml','7501000300040','Bebidas',27,38,6,3],['Sabritas original 45 g','7501000400018','Botanas',13,19,24,8],['Galletas de chocolate','7501000400025','Botanas',12,18,20,8],['Cacahuates salados 100 g','7501000400032','Botanas',14,21,14,5],['Pan blanco grande','7501000500017','Panadería',26,36,6,3],['Pan dulce concha','7501000500024','Panadería',6,12,20,6],['Jabón de barra','7501000600016','Limpieza',14,21,10,4],['Detergente 1 kg','7501000600023','Limpieza',34,47,7,3],['Cloro 1 L','7501000600030','Limpieza',18,26,8,3],['Papel higiénico 4 rollos','7501000700015','Higiene',29,41,9,4],['Pasta dental 100 ml','7501000700022','Higiene',24,35,7,3],['Chocolate en barra','7501000800014','Dulces',11,17,25,8],['Paleta de caramelo','7501000800021','Dulces',3,6,40,12]];
-function seedDemo(){
-  state.products=DEMO.map((d,i)=>({id:'p'+(i+1),name:d[0],barcode:d[1],cat:d[2],cost:d[3],price:d[4],stock:d[5],unit:'pza',min:d[6]}));
-  state.customers=[
-    {id:'c1',name:'Doña Maria Perez',phone:'5512345678',payments:[]},
-    {id:'c2',name:'Don José Gómez',phone:'5598765432',payments:[]}
-  ];
-  state.sales=[];state.entries=[];
-  let a=987654321;const rnd=()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};
-  const now=new Date();
-  for(let back=42;back>=0;back--){
-    const day=new Date(now.getFullYear(),now.getMonth(),now.getDate()-back),dow=day.getDay();
-    const n=Math.floor(rnd()*((dow===0?7:dow===6?6:3)+2));
-    for(let k=0;k<n;k++){
-      const items=[];
-      for(let j=0;j<1+Math.floor(rnd()*3);j++){const p=state.products[Math.floor(rnd()*state.products.length)];if(items.some(x=>x.id===p.id))continue;items.push({id:p.id,name:p.name,qty:1+Math.floor(rnd()*3),price:p.price,cost:p.cost});}
-      if(!items.length)continue;
-      const total=items.reduce((s,i)=>s+i.price*i.qty,0),profit=items.reduce((s,i)=>s+(i.price-i.cost)*i.qty,0);
-      const isCredit = rnd() > 0.88;
-      const cust = isCredit ? state.customers[Math.floor(rnd()*state.customers.length)] : null;
-      state.sales.push({id:uid()+k,date:`${day.getFullYear()}-${pad(day.getMonth()+1)}-${pad(day.getDate())}T${8+Math.floor(rnd()*12)}:${pad(Math.floor(rnd()*60))}:00`,items,total:Math.round(total*100)/100,profit:Math.round(profit*100)/100,payMethod:isCredit?'Crédito':'Efectivo',customerId:cust?cust.id:null,paid:isCredit?0:Math.round(total),change:0});
-    }
-  }
-  for(let back=30;back>=0;back-=7){const day=new Date(now.getFullYear(),now.getMonth(),now.getDate()-back),p=state.products[Math.floor(rnd()*state.products.length)],qty=6+Math.floor(rnd()*18);
-    state.entries.push({id:uid()+back,date:`${day.getFullYear()}-${pad(day.getMonth()+1)}-${pad(day.getDate())}T09:30:00`,productId:p.id,name:p.name,qty,cost:p.cost,note:'Compra a proveedor'});}
-  state.sales.sort((x,y)=>y.date.localeCompare(x.date));state.entries.sort((x,y)=>y.date.localeCompare(x.date));save();
-}
-
 /* ── CÁLCULOS Y CRÉDITOS ──────────────────────────────────── */
 const getProduct=id=>state.products.find(p=>p.id===id), activeSales=()=>state.sales.filter(s=>!s.cancelled);
 const getCustomer=id=>state.customers.find(c=>c.id===id);
@@ -191,7 +162,7 @@ function toast(msg,type='ok'){
   setTimeout(()=>{el.style.transition='opacity .3s,transform .3s';el.style.opacity='0';el.style.transform='translateX(20px)';setTimeout(()=>el.remove(),320);},2600);
 }
 function openModal(html,mount){$('#modalRoot').innerHTML=`<div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center"><div data-action="close-modal" class="absolute inset-0 bg-slate-900/55 glass"></div><div class="relative w-full sm:max-w-lg max-h-[93vh] overflow-y-auto bg-white sm:rounded-3xl rounded-t-3xl shadow-2xl pop">${html}</div></div>`;document.body.style.overflow='hidden';if(mount)setTimeout(mount,0);}
-function closeModal(){stopScanner();$('#modalRoot').innerHTML='';document.body.style.overflow='';}
+function closeModal(){$('#modalRoot').innerHTML='';document.body.style.overflow='';}
 const modalHead=(t,s='')=>`<div class="sticky top-0 z-10 bg-white/95 glass px-5 py-4 border-b border-slate-100 flex items-start gap-3"><div class="flex-1 min-w-0"><h3 class="text-[17px] font-extrabold text-slate-900">${esc(t)}</h3>${s?`<p class="text-[11.5px] text-slate-500 mt-0.5">${esc(s)}</p>`:''}</div><button data-action="close-modal" class="w-9 h-9 shrink-0 grid place-items-center rounded-full hover:bg-slate-100 text-slate-500">${icon('x')}</button></div>`;
 let confirmCb=null;
 function confirmDialog(title,text,onYes){confirmCb=onYes;openModal(modalHead(title)+`<div class="p-5"><p class="text-[13.5px] text-slate-600 leading-relaxed">${text}</p><div class="mt-5 flex gap-2"><button data-action="close-modal" class="flex-1 h-11 rounded-xl bg-slate-100 hover:bg-slate-200 font-semibold text-slate-700">Cancelar</button><button data-action="confirm-yes" class="flex-1 h-11 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold">Sí, continuar</button></div></div>`);}
@@ -322,7 +293,7 @@ function renderNav(){
 function renderBadge(){
   const sb = $('#storageBadge'), sbd = $('#sideBadge');
   if(sb) sb.innerHTML=storageOK?`<span class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[10.5px] font-bold border border-emerald-200 whitespace-nowrap">${icon('check','w-3.5 h-3.5')} Guardado</span>`:`<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-[10.5px] font-bold border border-amber-200 whitespace-nowrap">${icon('warn','w-3.5 h-3.5')} Solo en memoria</span>`;
-  if(sbd) sbd.innerHTML=storageOK?'Los datos quedan guardados en este dispositivo.':'Vista previa sin guardado: abre el archivo en el navegador para persistir datos.';
+  if(sbd) sbd.innerHTML=storageOK?'Los datos quedan guardados en este dispositivo.':'Atención: almacenamiento local deshabilitado en este navegador.';
 }
 
 function updateHeaderStats(){
@@ -458,7 +429,7 @@ function renderApp(){
   renderAll();
 }
 
-/* ── VISTA VENDER ─────────────────────────────────────────── */
+/* ── VISTA VENDER ───────────────────────────────────────── */
 function filteredProducts(){const q=state.ui.posSearch.trim().toLowerCase();return state.products.filter(p=>!state.ui.posCat||p.cat===state.ui.posCat).filter(p=>!q||p.name.toLowerCase().includes(q)||(p.barcode||'').includes(q)).sort((a,b)=>a.name.localeCompare(b.name,'es'));}
 VIEWS.venta=()=>{const t=dayStats(today());return `
 <div class="grid lg:grid-cols-[1fr_370px] gap-4 sm:gap-5 items-start">
@@ -466,9 +437,8 @@ VIEWS.venta=()=>{const t=dayStats(today());return `
     <div class="bg-white rounded-3xl shadow-sm border border-slate-200/70 p-3 sm:p-4">
       <div class="flex gap-2">
         <div class="relative flex-1 min-w-0"><span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">${icon('search')}</span>
-          <input id="posSearch" data-input="posSearch" value="${esc(state.ui.posSearch)}" autocomplete="off" placeholder="Buscar o escanear código…" class="w-full pl-11 pr-3 h-12 rounded-2xl bg-slate-100/90 border border-transparent focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none text-[15px] font-semibold">
+          <input id="posSearch" data-input="posSearch" value="${esc(state.ui.posSearch)}" autocomplete="off" placeholder="Buscar por nombre o código…" class="w-full pl-11 pr-3 h-12 rounded-2xl bg-slate-100/90 border border-transparent focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none text-[15px] font-semibold">
         </div>
-        <button data-action="scan" data-mode="pos" class="h-12 px-3.5 sm:px-5 rounded-2xl bg-slate-900 text-white font-bold flex items-center gap-2 hover:bg-slate-800 active:scale-95 transition shadow-lg shadow-slate-900/15">${icon('camera')}<span class="hidden sm:inline text-[14px]">Escanear</span></button>
       </div>
       <div id="posChips" class="mt-3 flex items-center gap-2 overflow-x-auto pb-0.5"></div>
     </div>
@@ -487,7 +457,7 @@ function renderPosChips(){
 }
 function renderPosGrid(){
   const list=filteredProducts(),g=$('#posGrid');if(!g)return;
-  if(!list.length){g.innerHTML=`<div class="col-span-full bg-white rounded-3xl border border-dashed border-slate-300 p-10 text-center"><p class="text-slate-400 font-semibold text-sm">Sin resultados</p><p class="text-slate-400 text-xs mt-1">Agrega el producto desde Inventario o escanea su código.</p></div>`;return;}
+  if(!list.length){g.innerHTML=`<div class="col-span-full bg-white rounded-3xl border border-dashed border-slate-300 p-10 text-center"><p class="text-slate-400 font-semibold text-sm">Sin resultados</p><p class="text-slate-400 text-xs mt-1">Agrega productos desde la sección de Inventario.</p></div>`;return;}
   g.innerHTML=list.map(p=>{const st=stockState(p),out=st==='out',bd=out?'text-rose-600 bg-rose-50':st==='low'?'text-amber-700 bg-amber-50':'text-slate-500 bg-slate-100';
     return `<button data-action="add" data-id="${p.id}" ${out?'disabled':''} class="group text-left bg-white rounded-2xl border border-slate-200/70 p-3 transition ${out?'opacity-55 cursor-not-allowed':'hover:border-indigo-400 hover:shadow-xl hover:shadow-indigo-500/10 hover:-translate-y-0.5 active:scale-[.97]'}">
       <div class="flex items-start justify-between gap-2"><span class="text-[9.5px] font-extrabold px-2 py-0.5 rounded-full truncate max-w-[70%]" style="background:${catColor(p.cat)}1a;color:${catColor(p.cat)}">${esc(p.cat)}</span><span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded-md ${bd} whitespace-nowrap">${out?'Agotado':p.stock+' '+p.unit}</span></div>
@@ -497,7 +467,7 @@ function renderPosGrid(){
 function cartTotals(){const sub=state.cart.reduce((a,i)=>a+i.price*i.qty,0),cost=state.cart.reduce((a,i)=>a+i.cost*i.qty,0),items=state.cart.reduce((a,i)=>a+i.qty,0);return{sub,cost,profit:sub-cost,items,change:Math.max(0,state.paid-sub),due:Math.max(0,sub-state.paid)};}
 function cartHTML(){
   const t=cartTotals();
-  if(!state.cart.length)return `<div class="text-center py-10 px-4"><div class="mx-auto w-14 h-14 rounded-2xl bg-slate-100 grid place-items-center text-slate-400">${icon('cart','w-7 h-7')}</div><p class="mt-3 text-[13px] font-bold text-slate-500">Carrito vacío</p><p class="text-[11.5px] text-slate-400 mt-1">Toca un producto o escanea un código.</p></div>`;
+  if(!state.cart.length)return `<div class="text-center py-10 px-4"><div class="mx-auto w-14 h-14 rounded-2xl bg-slate-100 grid place-items-center text-slate-400">${icon('cart','w-7 h-7')}</div><p class="mt-3 text-[13px] font-bold text-slate-500">Carrito vacío</p><p class="text-[11.5px] text-slate-400 mt-1">Toca un producto para agregar al carrito.</p></div>`;
   return `<div class="divide-y divide-slate-100 max-h-[35vh] overflow-y-auto">
     ${state.cart.map(i=>`<div class="flex items-center gap-2 py-2.5"><div class="flex-1 min-w-0"><p class="text-[13px] font-bold text-slate-800 truncate">${esc(i.name)}</p><p class="text-[11px] text-slate-500">${MXN(i.price)} ×${i.qty} = <b class="text-slate-700">${MXN(i.price*i.qty)}</b></p></div>
     <div class="flex items-center gap-1 shrink-0"><button data-action="qty-dec" data-id="${i.id}" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 grid place-items-center active:scale-90">${icon('minus','w-4 h-4')}</button>
@@ -577,7 +547,6 @@ VIEWS.inventario=()=>{
           <div class="relative flex-1 min-w-0"><span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">${icon('search')}</span>
             <input id="invSearch" data-input="invSearch" value="${esc(state.ui.invSearch)}" placeholder="Buscar por nombre o código…" class="w-full pl-11 pr-3 h-11 rounded-2xl bg-slate-100/90 border border-transparent focus:bg-white focus:border-indigo-500 outline-none text-[14px] font-semibold">
           </div>
-          <button data-action="scan" data-mode="inv" class="h-11 px-3 rounded-2xl bg-slate-900 text-white font-bold flex items-center gap-1.5 hover:bg-slate-800 text-xs shrink-0">${icon('camera','w-4 h-4')} Buscar</button>
         </div>
         <button data-action="product-new" class="h-11 px-4 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[13.5px] flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 active:scale-95 transition shrink-0">${icon('plus','w-4 h-4')} Nuevo Producto</button>
       </div>
@@ -617,7 +586,7 @@ function openProductModal(p=null){
   <form id="prodForm" class="p-5 space-y-3.5">
     <div><label class="lbl">Nombre del producto *</label><input name="name" required value="${esc(p?.name||'')}" placeholder="Ej. Leche entera 1L" class="inp"></div>
     <div class="grid grid-cols-2 gap-3">
-      <div><label class="lbl">Código de barras</label><div class="flex gap-1"><input name="barcode" id="pBarcode" value="${esc(p?.barcode||'')}" placeholder="750…" class="inp text-xs font-mono"><button type="button" data-action="scan-field" data-target="pBarcode" class="w-11 h-11 rounded-xl bg-slate-900 text-white grid place-items-center shrink-0">${icon('camera','w-4 h-4')}</button></div></div>
+      <div><label class="lbl">Código de barras</label><input name="barcode" id="pBarcode" value="${esc(p?.barcode||'')}" placeholder="750…" class="inp text-xs font-mono"></div>
       <div><label class="lbl">Categoría</label><input name="cat" list="catList" value="${esc(p?.cat||'Abarrotes')}" class="inp"><datalist id="catList">${productCats().map(c=>`<option value="${esc(c)}">`).join('')}</datalist></div>
     </div>
     <div class="grid grid-cols-2 gap-3">
@@ -832,296 +801,171 @@ VIEWS.reportes=()=>{
     <div class="bg-white rounded-3xl border border-slate-200/70 p-4 space-y-3">
       <h3 class="font-extrabold text-slate-900 text-sm">Ganancia Diaria (Últimos 14 días)</h3>
       <div class="h-36 flex items-end gap-1.5 pt-4">
-        ${days.map(d=>{const pct=Math.max(5,Math.round((d.profit/maxProf)*100));return `<div class="flex-1 flex flex-col items-center h-full justify-end group relative"><div class="absolute -top-7 opacity-0 group-hover:opacity-100 transition bg-slate-900 text-white text-[10px] font-bold px-2 py-1 rounded-md whitespace-nowrap z-10 pointer-events-none">${d.ds.slice(8)}:${MXN0(d.profit)}</div><div class="w-full bg-indigo-500/80 hover:bg-indigo-600 rounded-t-md bar" style="height:${pct}%"></div><span class="text-[9.5px] font-bold text-slate-400 mt-1">${d.ds.slice(8)}</span></div>`;}).join('')}
+        ${days.map(d=>{const pct=Math.max(5,Math.round((d.profit/maxProf)*100));return `<div class="flex-1 flex flex-col items-center h-full justify-end group relative"><div class="bar w-full rounded-t-lg bg-indigo-500 group-hover:bg-indigo-600 transition" style="height:${pct}%"></div><span class="text-[9px] font-bold text-slate-400 mt-1.5 truncate max-w-full">${d.ds.slice(8)}</span></div>`;}).join('')}
       </div>
     </div>
     <div class="grid sm:grid-cols-2 gap-4">
       <div class="bg-white rounded-3xl border border-slate-200/70 p-4 space-y-3">
-        <h3 class="font-extrabold text-slate-900 text-sm">Top Productos más Lucrativos</h3>
-        <div class="divide-y divide-slate-100">
-          ${!tops.length?`<p class="text-xs text-slate-400 py-3">Sin datos este mes</p>`:tops.map((t,i)=>`<div class="py-2 flex items-center justify-between gap-2"><div class="min-w-0 flex-1 flex items-center gap-2"><span class="w-5 h-5 rounded-full bg-slate-100 text-slate-600 font-extrabold text-[10px] grid place-items-center shrink-0">${i+1}</span><p class="font-bold text-slate-800 text-[12.5px] truncate">${esc(t.name)}</p></div><div class="text-right shrink-0"><p class="font-extrabold text-emerald-600 text-[12.5px]">${MXN0(t.profit)}</p><p class="text-[10px] text-slate-400">${t.qty} u.</p></div></div>`).join('')}
+        <h3 class="font-extrabold text-slate-900 text-sm">Productos Más Gananciosos (${monthLabel(ym)})</h3>
+        <div class="space-y-2">
+          ${!tops.length?`<p class="text-xs text-slate-400 py-4 text-center">Sin ventas registradas este mes</p>`:tops.map(t=>`<div class="flex items-center justify-between text-xs"><span class="font-bold text-slate-800 truncate flex-1 pr-2">${esc(t.name)}</span><span class="font-extrabold text-emerald-600 shrink-0">${MXN(t.profit)}</span></div>`).join('')}
         </div>
       </div>
       <div class="bg-white rounded-3xl border border-slate-200/70 p-4 space-y-3">
         <h3 class="font-extrabold text-slate-900 text-sm">Ganancia por Categoría</h3>
         <div class="space-y-2">
-          ${!cats.length?`<p class="text-xs text-slate-400 py-3">Sin datos este mes</p>`:cats.map(([c,val])=>{const max=cats[0][1]||1,pct=Math.round((val/max)*100);return `<div class="space-y-1"><div class="flex justify-between text-[12px] font-bold"><span class="text-slate-700">${esc(c)}</span><span class="text-emerald-600">${MXN0(val)}</span></div><div class="h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full rounded-full hbar" style="width:${pct}\%;background:${catColor(c)}"></div></div></div>`;}).join('')}
+          ${!cats.length?`<p class="text-xs text-slate-400 py-4 text-center">Sin datos de categorías</p>`:cats.map(([cat,prof])=>`<div class="flex items-center justify-between text-xs"><span class="font-bold text-slate-700 flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full" style="background:${catColor(cat)}"></span>${esc(cat)}</span><span class="font-extrabold text-slate-900">${MXN(prof)}</span></div>`).join('')}
         </div>
-      </div>
-    </div>
-    <div class="bg-white rounded-3xl border border-slate-200/70 p-4 space-y-3">
-      <h3 class="font-extrabold text-slate-900 text-sm">Historial de Ventas (${monthLabel(ym)})</h3>
-      <div class="divide-y divide-slate-100 max-h-[50vh] overflow-y-auto">
-        ${activeSales().filter(s=>monthOf(s.date)===ym).map(s=>{
-          const cust = s.customerId ? getCustomer(s.customerId) : null;
-          return `<div class="py-3 flex items-center justify-between gap-3"><div class="min-w-0 flex-1"><div class="flex items-center gap-2"><p class="font-bold text-slate-800 text-[13.5px]">${MXN(s.total)}</p><span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${s.payMethod==='Crédito'?'bg-amber-100 text-amber-800':s.payMethod==='Efectivo'?'bg-emerald-50 text-emerald-700':'bg-indigo-50 text-indigo-700'}">${s.payMethod}${cust?` (${esc(cust.name)})`:''}</span></div><p class="text-[11px] text-slate-400 mt-0.5">${dLabel(s.date.slice(0,10))} ${timeLabel(s.date)} ·${s.items.length} prod. · Ganancia: <b class="text-emerald-600">${MXN(s.profit)}</b></p></div>
-        <div class="flex items-center gap-1.5 shrink-0">
-          <button data-action="sale-wa" data-id="${s.id}" class="h-8 px-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-[11px] flex items-center gap-1 transition" title="Enviar por WhatsApp"><svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4"><path d="${IC.whatsapp}"/></svg> Ticket</button>
-          <button data-action="sale-cancel" data-id="${s.id}" class="h-8 px-2.5 rounded-xl bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-500 font-bold text-[11px] transition">Anular</button>
-        </div></div>`;
-        }).join('')}
       </div>
     </div>
   </div>`;
 };
 
-/* ── VISTA AJUSTES Y TELÉFONOS AUTORIZADOS ────────────────── */
+MOUNT.reportes=()=>{};
+
+/* ── VISTA AJUSTES ────────────────────────────────────────── */
 VIEWS.ajustes=()=>`
-<div class="max-w-2xl mx-auto space-y-5">
+<div class="max-w-xl mx-auto space-y-4">
   <div class="bg-white rounded-3xl border border-slate-200/70 p-5 space-y-4 shadow-sm">
-    <h2 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-      ${icon('gear','w-6 h-6 text-indigo-600')} Configuración de la Tienda
-    </h2>
+    <h2 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">${icon('gear','w-6 h-6 text-indigo-600')} Configuración de la Tienda</h2>
     <form id="settingsForm" class="space-y-3.5">
-      <div>
-        <label class="lbl">Nombre de la Tiendita</label>
-        <input name="store" value="${esc(state.settings.store)}" class="inp font-bold text-slate-800">
-      </div>
+      <div><label class="lbl">Nombre del Negocio</label><input name="store" value="${esc(state.settings.store)}" required class="inp font-bold"></div>
       <div class="grid grid-cols-2 gap-3">
-        <div>
-          <label class="lbl">Símbolo de Moneda</label>
-          <input name="symbol" value="${esc(state.settings.symbol)}" class="inp font-bold text-center">
-        </div>
-        <div>
-          <label class="lbl">Alerta Stock Mínimo Default</label>
-          <input name="minStock" type="number" value="${state.settings.minStock}" class="inp font-bold text-center">
-        </div>
+        <div><label class="lbl">Símbolo Moneda</label><input name="symbol" value="${esc(state.settings.symbol)}" required class="inp text-center font-bold"></div>
+        <div><label class="lbl">Stock Mínimo Global</label><input name="minStock" type="number" value="${state.settings.minStock}" required class="inp"></div>
       </div>
-      <button type="submit" class="w-full h-11 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-md shadow-indigo-600/20 active:scale-95 transition">
-        Guardar Configuración
-      </button>
+      <button type="submit" class="w-full h-11 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-lg shadow-indigo-600/20">Guardar Cambios</button>
     </form>
   </div>
 
   <div class="bg-white rounded-3xl border border-slate-200/70 p-5 space-y-4 shadow-sm">
-    <div class="flex items-center justify-between">
-      <div>
-        <h2 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-          📱 Personal / Teléfonos para Login
-        </h2>
-        <p class="text-xs text-slate-500 mt-0.5">Registra los números de teléfono autorizados para ingresar y atender la tiendita.</p>
-      </div>
+    <h3 class="font-extrabold text-slate-900 text-sm flex items-center gap-2">📱 Teléfonos Autorizados para Atender</h3>
+    <p class="text-xs text-slate-500">Solo estos números podrán iniciar sesión en este dispositivo.</p>
+    
+    <div class="space-y-2">
+      ${state.phoneUsers.map(ph => `
+        <div class="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-200">
+          <span class="font-mono font-bold text-slate-800 text-sm">📱 ${esc(ph)}</span>${ph === '4481294345' ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">Principal</span>` :
+          `<button data-action="delete-phone" data-phone="${esc(ph)}" class="text-rose-600 hover:bg-rose-50 p-1.5 rounded-lg transition">${icon('trash','w-4 h-4')}</button>`}
+        </div>
+      `).join('')}
     </div>
 
-    <form id="addPhoneForm" class="flex gap-2">
-      <input id="newPhoneInput" name="newPhone" type="tel" placeholder="Ej. 4481234567" required class="inp font-mono flex-1">
-      <button type="submit" class="h-11 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shrink-0 flex items-center gap-1.5 shadow-md shadow-emerald-600/20 active:scale-95 transition">
-        ${icon('plus','w-4 h-4')} Registrar Número
-      </button>
+    <form id="addPhoneForm" class="pt-2 flex gap-2">
+      <input name="newPhone" type="tel" placeholder="Nuevo número (10 dígitos)" required class="inp flex-1 font-mono text-sm">
+      <button type="submit" class="h-11 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shrink-0">+ Registrar</button>
     </form>
-
-    <div class="space-y-2 pt-2 border-t border-slate-100">
-      <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Teléfonos Registrados (${state.phoneUsers.length}):</p>
-      <div class="divide-y divide-slate-100 max-h-60 overflow-y-auto">
-        ${state.phoneUsers.map(ph => {
-          const isCurrent = state.currentPhone === ph;
-          return `<div class="py-2.5 flex items-center justify-between gap-2">
-            <div class="flex items-center gap-2">
-              <span class="w-8 h-8 rounded-full bg-slate-100 grid place-items-center text-slate-600 font-mono text-xs font-bold">📱</span>
-              <div>
-                <p class="font-mono font-extrabold text-slate-800 text-[14px]">${esc(ph)}</p>${isCurrent ? `<span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">Sesión Actual</span>` : ''}
-              </div>
-            </div>
-            <button data-action="del-phone" data-phone="${ph}" class="h-8 px-2.5 rounded-lg bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-400 text-xs font-bold transition flex items-center gap-1">
-              ${icon('trash','w-3.5 h-3.5')} Eliminar
-            </button>
-          </div>`;
-        }).join('')}
-      </div>
-    </div>
   </div>
 
-  <div class="bg-white rounded-3xl border border-slate-200/70 p-5 space-y-4 shadow-sm">
-    <h2 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-      ⚡ Sesión & Mantenimiento
-    </h2>
-    <div class="grid sm:grid-cols-2 gap-3">
-      <button data-action="logout" class="w-full h-12 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-sm flex items-center justify-center gap-2 shadow-md shadow-amber-500/20 active:scale-95 transition">
-        🔒 Cerrar Sesión (${esc(state.currentPhone || 'Usuario')})
-      </button>
-      <button data-action="seed-demo" class="w-full h-12 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-sm flex items-center justify-center gap-2 shadow-md shadow-slate-900/20 active:scale-95 transition">
-        🔄 Cargar Datos Demo
-      </button>
-    </div>
+  <div class="bg-white rounded-3xl border border-rose-200/80 p-5 space-y-3">
+    <h3 class="font-extrabold text-rose-700 text-sm">Zona de Riesgo</h3>
+    <p class="text-xs text-slate-500">Borra permanentemente todas las ventas, productos, clientes y registros almacenados localmente.</p>
+    <button data-action="reset-all" class="w-full h-11 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold border border-rose-200 text-xs transition">⚠️ Borrar todos los datos de la app</button>
   </div>
 </div>`;
 
-MOUNT.ajustes = () => {
-  const form = $('#settingsForm');
-  if (form) {
-    form.onsubmit = e => {
-      e.preventDefault();
-      const fd = new FormData(form);
-      state.settings.store = fd.get('store').trim() || 'Mi Tiendita';
-      state.settings.symbol = fd.get('symbol').trim() || '$';
-      state.settings.minStock = num(fd.get('minStock')) || 5;
-      save();
-      toast('Configuración guardada');
-      renderAll();
+MOUNT.ajustes=()=>{
+  const sf=$('#settingsForm');
+  if(sf){
+    sf.onsubmit=e=>{
+      e.preventDefault();const fd=new FormData(sf);
+      state.settings.store=fd.get('store').trim()||'Mi Tiendita';
+      state.settings.symbol=fd.get('symbol').trim()||'$';
+      state.settings.minStock=num(fd.get('minStock'))||5;
+      save();toast('Ajustes guardados');renderAll();
     };
   }
-
-  const phoneForm = $('#addPhoneForm');
-  if (phoneForm) {
-    phoneForm.onsubmit = e => {
+  const apf=$('#addPhoneForm');
+  if(apf){
+    apf.onsubmit=e=>{
       e.preventDefault();
-      const fd = new FormData(phoneForm);
-      const raw = fd.get('newPhone') || '';
-      const clean = raw.replace(/[^0-9]/g, '');
-      if (clean.length < 7) {
-        toast('Ingresa un número de teléfono válido (mínimo 7 dígitos)', 'warn');
-        return;
-      }
-      if (state.phoneUsers.includes(clean)) {
-        toast('Este número ya está registrado', 'warn');
-        return;
-      }
+      const input=apf.querySelector('input[name="newPhone"]');
+      const clean=input.value.replace(/[^0-9]/g,'');
+      if(clean.length<8){toast('Ingresa un número válido','warn');return;}
+      if(state.phoneUsers.includes(clean)){toast('Este número ya está registrado','warn');return;}
       state.phoneUsers.push(clean);
       save();
-      toast('Teléfono registrado correctamente');
+      toast('Número registrado exitosamente');
       renderAll();
     };
   }
 };
 
-/* ── ESCÁNER MODAL ────────────────────────────────────────── */
-let scannerActive = false;
-function stopScanner() { scannerActive = false; }
-function openScannerModal(targetMode = 'pos', fieldTarget = null) {
-  openModal(modalHead('Escáner de Código de Barras', 'Ingresa o simula la lectura de código') + `
-  <div class="p-5 space-y-4">
-    <div class="bg-slate-900 rounded-2xl p-6 text-center text-white relative overflow-hidden">
-      <div class="scanline absolute inset-x-0 h-0.5 bg-indigo-500 shadow-[0_0_8px_#6366f1]"></div>
-      <p class="text-xs text-slate-400">Escanear código con cámara o lector USB</p>
-      <input id="scannerInput" autofocus placeholder="Escribe o escanea código..." class="mt-4 w-full h-11 px-3 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-center outline-none focus:border-indigo-500">
-    </div>
-    <div class="flex gap-2">
-      <button data-action="close-modal" class="flex-1 h-11 rounded-xl bg-slate-100 font-semibold text-slate-700">Cerrar</button>
-      <button id="btnConfirmScan" class="flex-1 h-11 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold">Buscar Código</button>
-    </div>
-  </div>`, () => {
-    const inp = $('#scannerInput');
-    if (inp) inp.focus();
-    const handleScan = () => {
-      const val = inp ? inp.value.trim() : '';
-      if (!val) return;
-      closeModal();
-      if (fieldTarget) {
-        const el = $('#' + fieldTarget);
-        if (el) el.value = val;
-      } else if (targetMode === 'pos') {
-        const p = state.products.find(x => x.barcode === val || x.name.toLowerCase().includes(val.toLowerCase()));
-        if (p) {
-          state.cart.push({ id: p.id, name: p.name, price: p.price, cost: p.cost, qty: 1 });
-          toast(`Agregado: ${p.name}`);
-          renderCartAside();
-          renderCartBar();
-        } else {
-          toast('Producto no encontrado', 'warn');
-        }
-      } else if (targetMode === 'inv') {
-        state.ui.invSearch = val;
-        renderView();
-      }
-    };
-    $('#btnConfirmScan').onclick = handleScan;
-    if(inp) inp.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); handleScan(); } };
-  });
-}
-
-/* ── EVENT DELEGATION GLOBAL ──────────────────────────────── */
+/* ── EVENTOS GLOBALES ─────────────────────────────────────── */
 document.addEventListener('click', e => {
-  const btn = e.target.closest('[data-action]');
-  if (!btn) return;
-  const act = btn.dataset.action;
+  const b = e.target.closest('[data-action]');
+  if(!b) return;
+  const act = b.dataset.action;
 
-  if (act === 'go') {
-    state.view = btn.dataset.view;
-    renderView();
-    renderNav();
-    renderCartBar();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  } else if (act === 'logout') {
+  if(act==='go') go(b.dataset.view);
+  else if(act==='logout'){
     state.loggedIn = false;
     state.currentPhone = '';
-    toast('Sesión cerrada', 'info');
     renderApp();
-  } else if (act === 'del-phone') {
-    const ph = btn.dataset.phone;
-    if (state.phoneUsers.length <= 1) {
-      toast('Debe haber al menos un teléfono registrado en el sistema', 'warn');
-      return;
-    }
-    confirmDialog('Eliminar Teléfono', `¿Deseas eliminar el número ${ph} de la lista de autorizados?`, () => {
-      state.phoneUsers = state.phoneUsers.filter(p => p !== ph);
-      save();
-      toast('Número eliminado correctamente');
-      closeModal();
-      renderAll();
-    });
-  } else if (act === 'seed-demo') {
-    seedDemo();
-    toast('Datos demo cargados');
-    renderAll();
-  } else if (act === 'pos-cat') {
-    state.ui.posCat = btn.dataset.cat;
-    renderPosChips();
-    renderPosGrid();
-  } else if (act === 'add') {
-    const p = getProduct(btn.dataset.id);
-    if (!p || p.stock <= 0) return;
-    const item = state.cart.find(i => i.id === p.id);
-    if (item) {
-      if (item.qty < p.stock) item.qty++;
-      else toast('Stock insuficiente', 'warn');
+    toast('Sesión cerrada');
+  }
+  else if(act==='close-modal') closeModal();
+  else if(act==='confirm-yes'){ if(confirmCb) confirmCb(); closeModal(); }
+  else if(act==='pos-cat'){ state.ui.posCat = b.dataset.cat; renderPosChips(); renderPosGrid(); }
+  else if(act==='inv-cat'){ state.ui.invCat = b.dataset.cat; state.ui.invLow = false; renderView(); }
+  else if(act==='inv-filter-low'){ state.ui.invLow = !state.ui.invLow; renderView(); }
+  else if(act==='add'){
+    const p = getProduct(b.dataset.id);
+    if(!p || p.stock<=0) return;
+    const item = state.cart.find(i=>i.id===p.id);
+    if(item){
+      if(item.qty >= p.stock){ toast('Stock máximo alcanzado en carrito','warn'); return; }
+      item.qty = r3(item.qty + 1);
     } else {
-      state.cart.push({ id: p.id, name: p.name, price: p.price, cost: p.cost, qty: 1 });
+      state.cart.push({id:p.id, name:p.name, price:p.price, cost:p.cost, qty:1});
     }
-    renderCartAside();
-    renderCartBar();
-  } else if (act === 'qty-inc') {
-    const p = getProduct(btn.dataset.id);
-    const item = state.cart.find(i => i.id === btn.dataset.id);
-    if (item && p && item.qty < p.stock) item.qty++;
-    renderCartAside();
-    renderCartBar();
-  } else if (act === 'qty-dec') {
-    const item = state.cart.find(i => i.id === btn.dataset.id);
-    if (item) {
-      item.qty--;
-      if (item.qty <= 0) state.cart = state.cart.filter(i => i.id !== btn.dataset.id);
+    save(); renderCartAside(); renderCartBar();
+  }
+  else if(act==='qty-inc'||act==='qty-dec'){
+    const item = state.cart.find(i=>i.id===b.dataset.id);
+    if(!item) return;
+    const p = getProduct(item.id);
+    if(act==='qty-inc'){
+      if(p && item.qty >= p.stock){ toast('Stock máximo alcanzado','warn'); return; }
+      item.qty = r3(item.qty + 1);
+    } else {
+      item.qty = r3(item.qty - 1);
+      if(item.qty <= 0) state.cart = state.cart.filter(i=>i.id!==item.id);
     }
-    renderCartAside();
-    renderCartBar();
-  } else if (act === 'cart-del') {
-    state.cart = state.cart.filter(i => i.id !== btn.dataset.id);
-    renderCartAside();
-    renderCartBar();
-  } else if (act === 'cart-clear') {
+    save(); renderCartAside(); renderCartBar();
+    if($('#modalRoot').innerHTML) openCartModal();
+  }
+  else if(act==='cart-del'){
+    state.cart = state.cart.filter(i=>i.id!==b.dataset.id);
+    save(); renderCartAside(); renderCartBar();
+    if($('#modalRoot').innerHTML) openCartModal();
+  }
+  else if(act==='cart-clear'){
     state.cart = [];
-    renderCartAside();
-    renderCartBar();
-  } else if (act === 'pay') {
-    state.payMethod = btn.dataset.m;
-    renderCartAside();
-  } else if (act === 'quick-paid') {
-    state.paid = num(btn.dataset.v);
-    renderCartAside();
-  } else if (act === 'checkout') {
-    if (!state.cart.length) return;
+    save(); renderCartAside(); renderCartBar();
+    if($('#modalRoot').innerHTML) closeModal();
+  }
+  else if(act==='pay'){
+    state.payMethod = b.dataset.m;
+    save(); renderCartAside();
+    if($('#modalRoot').innerHTML) openCartModal();
+  }
+  else if(act==='quick-paid'){
+    state.paid = parseFloat(b.dataset.v)||0;
+    save(); renderCartAside();
+    if($('#modalRoot').innerHTML) openCartModal();
+  }
+  else if(act==='checkout'){
+    if(!state.cart.length) return;
     const t = cartTotals();
-    if (state.payMethod === 'Efectivo' && t.due > 0) {
-      toast('Falta cubrir el saldo total', 'warn');
-      return;
-    }
-    if (state.payMethod === 'Crédito' && !state.creditCustomerId) {
-      toast('Selecciona un cliente para el crédito', 'warn');
-      return;
-    }
-    for (const item of state.cart) {
-      const p = getProduct(item.id);
-      if (p) p.stock = r3(p.stock - item.qty);
-    }
+    if(state.payMethod === 'Efectivo' && t.due > 0){ toast('El pago en efectivo es menor al total','warn'); return; }
+    if(state.payMethod === 'Crédito' && !state.creditCustomerId){ toast('Selecciona un cliente para fiar','warn'); return; }
+
+    state.cart.forEach(i => {
+      const p = getProduct(i.id);
+      if(p) p.stock = Math.max(0, r3(p.stock - i.qty));
+    });
+
     const saleObj = {
       id: uid(),
       date: stamp(),
@@ -1129,131 +973,93 @@ document.addEventListener('click', e => {
       total: t.sub,
       profit: t.profit,
       payMethod: state.payMethod,
-      customerId: state.payMethod === 'Crédito' ? state.creditCustomerId : null,
-      paid: state.payMethod === 'Efectivo' ? state.paid : t.sub,
-      change: t.change
+      customerId: state.payMethod==='Crédito'? state.creditCustomerId : null,
+      paid: state.payMethod==='Efectivo'? (state.paid||t.sub) : 0,
+      change: state.payMethod==='Efectivo'? t.change : 0
     };
+
     state.sales.unshift(saleObj);
-    showSuccess(t.sub, t.change, state.payMethod, saleObj);
     state.cart = [];
     state.paid = 0;
     save();
     closeModal();
+    showSuccess(t.sub, saleObj.change, state.payMethod, saleObj);
     renderAll();
-  } else if (act === 'open-cart-modal') {
-    openCartModal();
-  } else if (act === 'close-modal') {
-    closeModal();
-  } else if (act === 'confirm-yes') {
-    if (confirmCb) confirmCb();
-  } else if (act === 'scan') {
-    openScannerModal(btn.dataset.mode || 'pos');
-  } else if (act === 'scan-field') {
-    openScannerModal('field', btn.dataset.target);
-  } else if (act === 'product-new') {
-    openProductModal();
-  } else if (act === 'product-edit') {
-    openProductModal(getProduct(btn.dataset.id));
-  } else if (act === 'product-del') {
-    const p = getProduct(btn.dataset.id);
-    confirmDialog('Eliminar Producto', `¿Eliminar "${p?.name}" del inventario?`, () => {
-      state.products = state.products.filter(x => x.id !== btn.dataset.id);
-      save();
-      toast('Producto eliminado');
-      closeModal();
-      renderAll();
-    });
-  } else if (act === 'inv-quick-entry') {
-    state.ui.entryProduct = btn.dataset.id;
-    go('entradas');
-  } else if (act === 'inv-filter-low') {
-    state.ui.invLow = !state.ui.invLow;
-    renderInvList();
-  } else if (act === 'inv-cat') {
-    state.ui.invCat = btn.dataset.cat;
-    state.ui.invLow = false;
-    renderInvList();
-  } else if (act === 'customer-new') {
-    openCustomerModal();
-  } else if (act === 'customer-edit') {
-    openCustomerModal(getCustomer(btn.dataset.id));
-  } else if (act === 'customer-pay') {
-    openPaymentModal(btn.dataset.id);
-  } else if (act === 'customer-wa-debt') {
-    sendWhatsAppDebtTicket(btn.dataset.id);
-  } else if (act === 'send-wa-cart') {
+  }
+  else if(act==='send-wa-cart'){
+    if(!state.cart.length){ toast('El carrito está vacío','warn'); return; }
+    const t = cartTotals();
     sendWhatsAppTicket({
+      date: stamp(),
       items: state.cart,
-      total: cartTotals().sub,
+      total: t.sub,
       payMethod: state.payMethod,
+      customerId: state.creditCustomerId,
       paid: state.paid,
-      change: cartTotals().change,
-      customerId: state.creditCustomerId
-    });
-  } else if (act === 'sale-wa') {
-    const s = state.sales.find(x => x.id === btn.dataset.id);
-    if (s) sendWhatsAppTicket(s);
-  } else if (act === 'sale-cancel') {
-    const s = state.sales.find(x => x.id === btn.dataset.id);
-    if (!s) return;
-    confirmDialog('Anular Venta', `¿Deseas anular esta venta de ${MXN(s.total)} y devolver los artículos al inventario?`, () => {
-      s.cancelled = true;
-      s.items.forEach(i => {
-        const p = getProduct(i.id);
-        if (p) p.stock = r3(p.stock + i.qty);
-      });
-      save();
-      toast('Venta anulada');
-      closeModal();
-      renderAll();
+      change: t.change
     });
   }
+  else if(act==='product-new') openProductModal();
+  else if(act==='product-edit') openProductModal(getProduct(b.dataset.id));
+  else if(act==='product-del'){
+    confirmDialog('¿Eliminar producto?', 'El producto será borrado del inventario.', () => {
+      state.products = state.products.filter(p=>p.id!==b.dataset.id);
+      save(); renderAll(); toast('Producto eliminado');
+    });
+  }
+  else if(act==='inv-quick-entry'){
+    state.ui.entryProduct = b.dataset.id;
+    go('entradas');
+  }
+  else if(act==='customer-new') openCustomerModal();
+  else if(act==='customer-edit') openCustomerModal(getCustomer(b.dataset.id));
+  else if(act==='customer-pay') openPaymentModal(b.dataset.id);
+  else if(act==='customer-wa-debt') sendWhatsAppDebtTicket(b.dataset.id);
+  else if(act==='delete-phone'){
+    const ph = b.dataset.phone;
+    confirmDialog('¿Eliminar acceso?', `Se quitará el acceso al teléfono ${ph}.`, () => {
+      state.phoneUsers = state.phoneUsers.filter(x=>x!==ph);
+      save(); renderAll(); toast('Número eliminado');
+    });
+  }
+  else if(act==='reset-all'){
+    confirmDialog('⚠️ Borrar TODO', 'Se eliminarán ventas, productos, clientes y entradas guardadas.', () => {
+      localStorage.removeItem(KEY);
+      location.reload();
+    });
+  }
+  else if(act==='open-cart-modal') openCartModal();
 });
 
 document.addEventListener('input', e => {
-  const t = e.target;
-  if (t.dataset.input === 'posSearch') {
-    state.ui.posSearch = t.value;
-    renderPosGrid();
-  } else if (t.dataset.input === 'invSearch') {
-    state.ui.invSearch = t.value;
-    renderInvList();
-  } else if (t.dataset.input === 'custSearch') {
-    state.ui.custSearch = t.value;
-    renderView();
-  } else if (t.dataset.input === 'paid') {
-    state.paid = num(t.value);
-    renderCartAside();
-  } else if (t.dataset.input === 'phone') {
-    state.phone = t.value;
-  } else if (t.dataset.input === 'creditCustomer') {
-    state.creditCustomerId = t.value;
-  } else if (t.dataset.input === 'repMonth') {
-    state.ui.repMonth = t.value;
-    renderView();
-  } else if (t.dataset.input === 'qty') {
-    const item = state.cart.find(i => i.id === t.dataset.id);
-    if (item) {
-      item.qty = Math.max(1, num(t.value));
-      renderCartAside();
-      renderCartBar();
+  const inp = e.target.dataset.input;
+  if(!inp) return;
+  if(inp==='posSearch'){ state.ui.posSearch = e.target.value; renderPosGrid(); }
+  else if(inp==='invSearch'){ state.ui.invSearch = e.target.value; renderInvList(); }
+  else if(inp==='custSearch'){ state.ui.custSearch = e.target.value; renderView(); }
+  else if(inp==='paid'){ state.paid = num(e.target.value); renderCartAside(); }
+  else if(inp==='phone'){ state.phone = e.target.value; save(); }
+  else if(inp==='creditCustomer'){ state.creditCustomerId = e.target.value; save(); }
+  else if(inp==='qty'){
+    const item = state.cart.find(i=>i.id===e.target.dataset.id);
+    if(item){
+      const val = num(e.target.value);
+      const p = getProduct(item.id);
+      if(p && val > p.stock){
+        toast('Supera el stock disponible','warn');
+        item.qty = p.stock;
+      } else {
+        item.qty = val;
+      }
+      if(item.qty <= 0) state.cart = state.cart.filter(i=>i.id!==item.id);
+      save(); renderCartAside(); renderCartBar();
     }
   }
+  else if(inp==='repMonth'){ state.ui.repMonth = e.target.value; renderView(); }
 });
 
-/* ── INICIALIZACIÓN DE LA APLICACIÓN ─────────────────────── */
-window.addEventListener('DOMContentLoaded', () => {
-  if (state.products.length === 0) {
-    seedDemo();
-  }
-  renderApp();
-});
-if (document.readyState === 'complete' || document.readyState === 'interactive') {
-  if (state.products.length === 0) {
-    seedDemo();
-  }
-  renderApp();
-}
+/* ── INICIALIZACIÓN DE LA APLICACIÓN ──────────────────────── */
+renderApp();
 </script>
 </body>
 </html>
