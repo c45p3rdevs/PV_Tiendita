@@ -96,7 +96,6 @@ window.state = {
   ui: {posSearch:'', posCat:'', invSearch:'', invCat:'', invLow:false, custSearch:'', entryProduct:'', repMonth:thisMonth()}
 };
 
-// Variable para controlar el scanner activo de cámara
 let html5QrcodeScanner = null;
 
 // Guardar datos globales en Firestore
@@ -182,36 +181,44 @@ function toast(msg,type='ok'){
   $('#toasts').appendChild(el);
   setTimeout(()=>{el.style.transition='opacity .3s,transform .3s';el.style.opacity='0';el.style.transform='translateX(20px)';setTimeout(()=>el.remove(),320);},2600);
 }
-function stopCameraScanner(){
+
+async function stopCameraScanner(){
   if(html5QrcodeScanner){
-    html5QrcodeScanner.stop().then(() => {
+    try {
+      if (html5QrcodeScanner.isScanning) {
+        await html5QrcodeScanner.stop();
+      }
       html5QrcodeScanner.clear();
-      html5QrcodeScanner = null;
-    }).catch(err => {
+    } catch (err) {
       console.log("Scanner stop error", err);
+    } finally {
       html5QrcodeScanner = null;
-    });
+    }
   }
 }
-function openModal(html,mount){
-  closeModal();
-  $('#modalRoot').innerHTML=`<div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center"><div data-action="close-modal" class="absolute inset-0 bg-slate-900/55 glass"></div><div class="relative w-full sm:max-w-lg max-h-[93vh] overflow-y-auto bg-white sm:rounded-3xl rounded-t-3xl shadow-2xl pop">${html}</div></div>`;
-  document.body.style.overflow='hidden';
-  if(mount)setTimeout(mount,0);
+
+function openModal(html, mount){
+  stopCameraScanner().then(() => {
+    $('#modalRoot').innerHTML=`<div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center"><div data-action="close-modal" class="absolute inset-0 bg-slate-900/55 glass"></div><div class="relative w-full sm:max-w-lg max-h-[93vh] overflow-y-auto bg-white sm:rounded-3xl rounded-t-3xl shadow-2xl pop">${html}</div></div>`;
+    document.body.style.overflow='hidden';
+    if(mount) setTimeout(mount, 50);
+  });
 }
-function closeModal(){
-  stopCameraScanner();
+
+async function closeModal(){
+  await stopCameraScanner();
   $('#modalRoot').innerHTML='';
   document.body.style.overflow='';
 }
+
 const modalHead=(t,s='')=>`<div class="sticky top-0 z-10 bg-white/95 glass px-5 py-4 border-b border-slate-100 flex items-start gap-3"><div class="flex-1 min-w-0"><h3 class="text-[17px] font-extrabold text-slate-900">${esc(t)}</h3>${s?`<p class="text-[11.5px] text-slate-500 mt-0.5">${esc(s)}</p>`:''}</div><button data-action="close-modal" class="w-9 h-9 shrink-0 grid place-items-center rounded-full hover:bg-slate-100 text-slate-500">${icon('x')}</button></div>`;
 
 /* ── ESCÁNER CON CÁMARA EN TIEMPO REAL ───────────────────── */
 function openCameraScannerModal(onScanSuccessCallback) {
-  const html = modalHead('Escanear Código de Barras', 'Apunta la cámara al código de barras del producto') + `
+  const html = modalHead('Escanear Código de Barras', 'Apunta la cámara al código del producto') + `
   <div class="p-5 flex flex-col items-center justify-center space-y-4">
     <div id="cameraScannerView" class="w-full max-w-sm rounded-2xl overflow-hidden bg-slate-900 shadow-inner min-h-[260px] flex items-center justify-center"></div>
-    <p class="text-xs text-slate-500 text-center">Coloca el código bien centrado en el recuadro para mejor lectura.</p>
+    <p class="text-xs text-slate-500 text-center">Centra el código de barras en la cámara.</p>
     <button data-action="close-modal" class="w-full h-11 rounded-xl bg-slate-100 font-bold text-slate-700">Cancelar</button>
   </div>`;
 
@@ -222,14 +229,13 @@ function openCameraScannerModal(onScanSuccessCallback) {
     html5QrcodeScanner.start(
       { facingMode: "environment" },
       config,
-      (decodedText) => {
-        stopCameraScanner();
-        closeModal();
-        if(onScanSuccessCallback) onScanSuccessCallback(decodedText);
+      async (decodedText) => {
+        const code = String(decodedText).trim();
+        await stopCameraScanner();
+        await closeModal();
+        if(onScanSuccessCallback) onScanSuccessCallback(code);
       },
-      (errorMessage) => {
-        // Ignorar errores continuos de búsqueda de frame
-      }
+      () => {}
     ).catch(err => {
       toast("No se pudo acceder a la cámara o requiere permisos", "error");
       closeModal();
@@ -607,9 +613,10 @@ function renderInvList(){
 }
 MOUNT.inventario=()=>renderInvList();
 
-function openProductModal(p=null){
+function openProductModal(p=null, prefilledBarcode=''){
   const isEdit=!!p;
   const cats=['Abarrotes','Bebidas','Botanas','Lácteos','Limpieza','Higiene','Panadería','Dulces','Otros'];
+  const barcodeValue = prefilledBarcode || p?.barcode || '';
   const html=modalHead(isEdit?'Editar Producto':'Dar de Alta Producto','Completa los datos para guardar globalmente')+`
   <form id="prodForm" class="p-5 space-y-4">
     <div><label class="lbl">Nombre del Producto *</label><input id="pName" required value="${esc(p?.name||'')}" placeholder="Ej. Leche Alpura 1L" class="inp font-bold"></div>
@@ -632,7 +639,7 @@ function openProductModal(p=null){
     <div>
       <label class="lbl">Código de Barras</label>
       <div class="flex gap-2">
-        <input id="pBarcode" value="${esc(p?.barcode||'')}" placeholder="Escanear o escribir..." class="inp font-mono flex-1">
+        <input id="pBarcode" value="${esc(barcodeValue)}" placeholder="Escanear o escribir..." class="inp font-mono flex-1">
         <button type="button" data-action="scan-product-form" class="h-11 px-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold flex items-center gap-1.5 shrink-0" title="Capturar código con Cámara">
           ${icon('barcode','w-5 h-5')} Escanear
         </button>
@@ -643,29 +650,32 @@ function openProductModal(p=null){
       <button type="submit" class="flex-1 h-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold shadow-lg shadow-indigo-600/20">${isEdit?'Guardar Cambios':'Crear Producto'}</button>
     </div>
   </form>`;
-  openModal(html,()=>{
-    $('#prodForm').onsubmit=async e=>{
+
+  openModal(html, () => {
+    const form = $('#prodForm');
+    if(!form) return;
+    form.onsubmit = async e => {
       e.preventDefault();
-      const name=$('#pName').value.trim();
-      const cost=num($('#pCost').value);
-      const price=num($('#pPrice').value);
-      const stock=num($('#pStock').value);
-      const min=num($('#pMin').value);
-      const cat=$('#pCat').value;
-      const unit=$('#pUnit').value.trim()||'pza';
-      const barcode=$('#pBarcode').value.trim();
+      const name = $('#pName').value.trim();
+      const cost = num($('#pCost').value);
+      const price = num($('#pPrice').value);
+      const stock = num($('#pStock').value);
+      const min = num($('#pMin').value);
+      const cat = $('#pCat').value;
+      const unit = $('#pUnit').value.trim() || 'pza';
+      const barcode = $('#pBarcode').value.trim();
 
       if(!name) return toast('Ingresa el nombre del producto','warn');
 
-      if(isEdit){
-        const item=getProduct(p.id);
-        if(item) Object.assign(item,{name,cost,price,stock,min,cat,unit,barcode});
+      if(isEdit && p){
+        const item = getProduct(p.id);
+        if(item) Object.assign(item, {name, cost, price, stock, min, cat, unit, barcode});
       } else {
-        state.products.push({id:uid(),name,cost,price,stock,min,cat,unit,barcode});
+        state.products.push({id: uid(), name, cost, price, stock, min, cat, unit, barcode});
       }
       await save();
-      closeModal();
-      toast(isEdit?'Producto actualizado':'Producto agregado exitosamente','ok');
+      await closeModal();
+      toast(isEdit ? 'Producto actualizado' : 'Producto agregado exitosamente', 'ok');
       renderAll();
     };
   });
@@ -737,14 +747,16 @@ function openCustomerModal(){
     </div>
   </form>`;
   openModal(html,()=>{
-    $('#custForm').onsubmit=async e=>{
+    const f = $('#custForm');
+    if(!f) return;
+    f.onsubmit=async e=>{
       e.preventDefault();
       const name=$('#cName').value.trim();
       const phone=$('#cPhone').value.trim();
       if(!name) return;
       state.customers.push({id:uid(), name, phone, payments:[]});
       await save();
-      closeModal();
+      await closeModal();
       toast('Cliente registrado con éxito','ok');
       renderAll();
     };
@@ -765,14 +777,16 @@ function openPayDebtModal(cId){
     </div>
   </form>`;
   openModal(html,()=>{
-    $('#payDebtForm').onsubmit=async e=>{
+    const f = $('#payDebtForm');
+    if(!f) return;
+    f.onsubmit=async e=>{
       e.preventDefault();
       const amount=num($('#pAmount').value);
       if(amount<=0) return toast('Monto no válido','warn');
       if(!c.payments) c.payments = [];
       c.payments.push({id:uid(), date:stamp(), amount});
       await save();
-      closeModal();
+      await closeModal();
       toast('Abono registrado con éxito','ok');
       renderAll();
     };
@@ -970,7 +984,7 @@ document.addEventListener('click', async e => {
 
   if(act==='go') go(b.dataset.view);
   else if(act==='logout'){ state.loggedIn = false; state.currentPhone = ''; renderApp(); toast('Sesión cerrada'); }
-  else if(act==='close-modal') closeModal();
+  else if(act==='close-modal') await closeModal();
   else if(act==='product-new') openProductModal();
   else if(act==='product-edit') openProductModal(getProduct(b.dataset.id));
   else if(act==='product-del'){
@@ -998,19 +1012,31 @@ document.addEventListener('click', async e => {
           renderCartAside(); renderCartBar();
         }
       } else {
-        state.ui.posSearch = code;
-        renderPosGrid();
-        toast(`Código de barras: ${code}. No registrado.`, 'info');
+        openProductModal(null, code);
+        toast(`Código ${code} no registrado. ¡Crea el producto!`, 'info');
       }
     });
   }
   else if(act==='scan-product-form'){
+    const currentName = $('#pName')?.value || '';
+    const currentCost = $('#pCost')?.value || '';
+    const currentPrice = $('#pPrice')?.value || '';
+    const currentStock = $('#pStock')?.value || '';
+    const currentMin = $('#pMin')?.value || '';
+    const currentCat = $('#pCat')?.value || '';
+    const currentUnit = $('#pUnit')?.value || '';
+
     openCameraScannerModal((code) => {
-      const barcodeInput = $('#pBarcode');
-      if(barcodeInput){
-        barcodeInput.value = code;
-        toast(`Código capturado: ${code}`, 'ok');
-      }
+      openProductModal({
+        name: currentName,
+        cost: currentCost,
+        price: currentPrice,
+        stock: currentStock,
+        min: currentMin,
+        cat: currentCat,
+        unit: currentUnit
+      }, code);
+      toast(`Código capturado: ${code}`, 'ok');
     });
   }
   else if(act==='remove-phone'){
@@ -1121,7 +1147,7 @@ document.addEventListener('click', async e => {
     state.creditCustomerId = '';
     
     await save();
-    closeModal();
+    await closeModal();
     showSuccess(sale.total, sale.change, sale.payMethod, sale);
     renderAll();
   }
