@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Tiendita POS Sync</title>
 <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<!-- Librería para lectura de códigos de barras / QR con cámara -->
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 <style>
   body{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
   ::-webkit-scrollbar{width:9px;height:9px}::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:9px}
@@ -70,7 +72,8 @@ const IC={
   warn:'M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z',bolt:'m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z',
   arrow:'M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3',cash:'M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z',
   whatsapp:'M12.012 2c-5.506 0-9.989 4.478-9.99 9.984 0 1.758.459 3.474 1.33 4.982L2 22l5.122-1.34c1.458.794 3.102 1.213 4.885 1.215h.005c5.503 0 9.987-4.479 9.988-9.986 0-2.668-1.038-5.176-2.925-7.062A9.923 9.923 0 0 0 12.012 2zm5.792 14.155c-.244.688-1.42 1.314-1.954 1.393-.532.079-1.229.112-1.983-.13-.456-.146-1.042-.338-1.792-.663-3.159-1.37-5.215-4.57-5.373-4.781-.158-.21-1.288-1.715-1.288-3.27 0-1.556.815-2.321 1.104-2.637.289-.316.631-.395.841-.395.21 0 .421.002.605.011.196.01.46.002.72.627.263.631.894 2.183.972 2.341.079.158.131.342.026.552-.105.21-.158.342-.316.526-.158.184-.332.411-.473.552-.158.158-.323.33-.139.645.184.315.82 1.353 1.76 2.19 1.209 1.077 2.228 1.411 2.543 1.569.316.158.5.132.684-.079.184-.21.789-.92 1 1-1.183.21-.263.42-.22.631-.053.21.158 1.341.763 2.182 1.236 2.84 1.71.657.474.789.658.894.947.105.289.105 1.499-.139 2.187z',
-  users:'M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z'
+  users:'M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z',
+  barcode:'M3.75 4.5a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-1.5 0V5.25a.75.75 0 0 1 .75-.75Zm3.75 0a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-1.5 0V5.25a.75.75 0 0 1 .75-.75Zm3 0a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-1.5 0V5.25a.75.75 0 0 1 .75-.75Zm4.5 0a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-1.5 0V5.25a.75.75 0 0 1 .75-.75Zm3 0a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-1.5 0V5.25a.75.75 0 0 1 .75-.75Z'
 };
 const icon=(n,c='w-5 h-5')=>`<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.7" stroke="currentColor" class="${c}"><path stroke-linecap="round" stroke-linejoin="round" d="${IC[n]||''}"/></svg>`;
 
@@ -92,6 +95,9 @@ window.state = {
   settings: {store:'Mi Tiendita POS', symbol:'$', minStock:5},
   ui: {posSearch:'', posCat:'', invSearch:'', invCat:'', invLow:false, custSearch:'', entryProduct:'', repMonth:thisMonth()}
 };
+
+// Variable para controlar el scanner activo de cámara
+let html5QrcodeScanner = null;
 
 // Guardar datos globales en Firestore
 async function save(){
@@ -176,9 +182,60 @@ function toast(msg,type='ok'){
   $('#toasts').appendChild(el);
   setTimeout(()=>{el.style.transition='opacity .3s,transform .3s';el.style.opacity='0';el.style.transform='translateX(20px)';setTimeout(()=>el.remove(),320);},2600);
 }
-function openModal(html,mount){$('#modalRoot').innerHTML=`<div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center"><div data-action="close-modal" class="absolute inset-0 bg-slate-900/55 glass"></div><div class="relative w-full sm:max-w-lg max-h-[93vh] overflow-y-auto bg-white sm:rounded-3xl rounded-t-3xl shadow-2xl pop">${html}</div></div>`;document.body.style.overflow='hidden';if(mount)setTimeout(mount,0);}
-function closeModal(){$('#modalRoot').innerHTML='';document.body.style.overflow='';}
+function stopCameraScanner(){
+  if(html5QrcodeScanner){
+    html5QrcodeScanner.stop().then(() => {
+      html5QrcodeScanner.clear();
+      html5QrcodeScanner = null;
+    }).catch(err => {
+      console.log("Scanner stop error", err);
+      html5QrcodeScanner = null;
+    });
+  }
+}
+function openModal(html,mount){
+  closeModal();
+  $('#modalRoot').innerHTML=`<div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center"><div data-action="close-modal" class="absolute inset-0 bg-slate-900/55 glass"></div><div class="relative w-full sm:max-w-lg max-h-[93vh] overflow-y-auto bg-white sm:rounded-3xl rounded-t-3xl shadow-2xl pop">${html}</div></div>`;
+  document.body.style.overflow='hidden';
+  if(mount)setTimeout(mount,0);
+}
+function closeModal(){
+  stopCameraScanner();
+  $('#modalRoot').innerHTML='';
+  document.body.style.overflow='';
+}
 const modalHead=(t,s='')=>`<div class="sticky top-0 z-10 bg-white/95 glass px-5 py-4 border-b border-slate-100 flex items-start gap-3"><div class="flex-1 min-w-0"><h3 class="text-[17px] font-extrabold text-slate-900">${esc(t)}</h3>${s?`<p class="text-[11.5px] text-slate-500 mt-0.5">${esc(s)}</p>`:''}</div><button data-action="close-modal" class="w-9 h-9 shrink-0 grid place-items-center rounded-full hover:bg-slate-100 text-slate-500">${icon('x')}</button></div>`;
+
+/* ── ESCÁNER CON CÁMARA EN TIEMPO REAL ───────────────────── */
+function openCameraScannerModal(onScanSuccessCallback) {
+  const html = modalHead('Escanear Código de Barras', 'Apunta la cámara al código de barras del producto') + `
+  <div class="p-5 flex flex-col items-center justify-center space-y-4">
+    <div id="cameraScannerView" class="w-full max-w-sm rounded-2xl overflow-hidden bg-slate-900 shadow-inner min-h-[260px] flex items-center justify-center"></div>
+    <p class="text-xs text-slate-500 text-center">Coloca el código bien centrado en el recuadro para mejor lectura.</p>
+    <button data-action="close-modal" class="w-full h-11 rounded-xl bg-slate-100 font-bold text-slate-700">Cancelar</button>
+  </div>`;
+
+  openModal(html, () => {
+    html5QrcodeScanner = new Html5Qrcode("cameraScannerView");
+    const config = { fps: 10, qrbox: { width: 250, height: 150 } };
+    
+    html5QrcodeScanner.start(
+      { facingMode: "environment" },
+      config,
+      (decodedText) => {
+        stopCameraScanner();
+        closeModal();
+        if(onScanSuccessCallback) onScanSuccessCallback(decodedText);
+      },
+      (errorMessage) => {
+        // Ignorar errores continuos de búsqueda de frame
+      }
+    ).catch(err => {
+      toast("No se pudo acceder a la cámara o requiere permisos", "error");
+      closeModal();
+    });
+  });
+}
 
 function sendWhatsAppTicket(saleData, customPhone = '') {
   const store = state.settings.store || 'Mi Tiendita POS';
@@ -386,7 +443,7 @@ function renderApp(){
 function filteredProducts(){
   const q=state.ui.posSearch.trim().toLowerCase();
   return state.products.filter(p=>!state.ui.posCat||p.cat===state.ui.posCat)
-                       .filter(p=>!q||p.name.toLowerCase().includes(q)||(p.barcode||'').includes(q))
+                       .filter(p=>!q||p.name.toLowerCase().includes(q)||(p.barcode||'').toLowerCase().includes(q))
                        .sort((a,b)=>a.name.localeCompare(b.name,'es'));
 }
 
@@ -400,6 +457,10 @@ VIEWS.venta=()=>{
           <div class="relative flex-1 min-w-0"><span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">${icon('search')}</span>
             <input id="posSearch" data-input="posSearch" value="${esc(state.ui.posSearch)}" autocomplete="off" placeholder="Buscar por nombre o código…" class="w-full pl-11 pr-3 h-12 rounded-2xl bg-slate-100/90 border border-transparent focus:bg-white focus:border-indigo-500 outline-none text-[15px] font-semibold">
           </div>
+          <button data-action="scan-pos" class="h-12 px-4 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold flex items-center gap-2 shadow-lg shadow-indigo-600/20 active:scale-95 transition shrink-0" title="Escanear con Cámara">
+            ${icon('barcode','w-6 h-6')}
+            <span class="hidden sm:inline text-xs uppercase tracking-wider">Cámara</span>
+          </button>
         </div>
         <div id="posChips" class="mt-3 flex items-center gap-2 overflow-x-auto pb-0.5"></div>
       </div>
@@ -492,7 +553,7 @@ function filteredInventory(){
   return state.products.filter(p=>{
     if(state.ui.invLow && p.stock>p.min)return false;
     if(state.ui.invCat && p.cat!==state.ui.invCat)return false;
-    if(q && !p.name.toLowerCase().includes(q) && !(p.barcode||'').includes(q))return false;
+    if(q && !p.name.toLowerCase().includes(q) && !(p.barcode||'').toLowerCase().includes(q))return false;
     return true;
   }).sort((a,b)=>a.name.localeCompare(b.name,'es'));
 }
@@ -568,7 +629,15 @@ function openProductModal(p=null){
       <div><label class="lbl">Stock Actual</label><input id="pStock" type="number" step="any" required value="${p?.stock??0}" placeholder="0" class="inp font-bold"></div>
       <div><label class="lbl">Stock Mínimo</label><input id="pMin" type="number" step="any" value="${p?.min??5}" placeholder="5" class="inp font-bold"></div>
     </div>
-    <div><label class="lbl">Código de Barras (Opcional)</label><input id="pBarcode" value="${esc(p?.barcode||'')}" placeholder="Escanear o escribir..." class="inp font-mono"></div>
+    <div>
+      <label class="lbl">Código de Barras</label>
+      <div class="flex gap-2">
+        <input id="pBarcode" value="${esc(p?.barcode||'')}" placeholder="Escanear o escribir..." class="inp font-mono flex-1">
+        <button type="button" data-action="scan-product-form" class="h-11 px-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold flex items-center gap-1.5 shrink-0" title="Capturar código con Cámara">
+          ${icon('barcode','w-5 h-5')} Escanear
+        </button>
+      </div>
+    </div>
     <div class="pt-2 flex gap-2">
       <button type="button" data-action="close-modal" class="flex-1 h-12 rounded-xl bg-slate-100 font-semibold text-slate-700">Cancelar</button>
       <button type="submit" class="flex-1 h-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold shadow-lg shadow-indigo-600/20">${isEdit?'Guardar Cambios':'Crear Producto'}</button>
@@ -814,16 +883,49 @@ VIEWS.reportes=()=>{
   </div>`;
 };
 
-/* ── 6. VISTA: AJUSTES GLOBALES ─────────────────────────── */
+/* ── 6. VISTA: AJUSTES GLOBALES Y USUARIOS ───────────────── */
 VIEWS.ajustes=()=>{
   return `
-  <div class="bg-white rounded-3xl border border-slate-200/70 p-5 shadow-sm max-w-xl space-y-4">
-    <h2 class="font-extrabold text-slate-900 text-lg">Ajustes de la Tiendita</h2>
-    <form id="settingsForm" class="space-y-4">
-      <div><label class="lbl">Nombre de la Tienda / Negocio *</label><input id="setStore" value="${esc(state.settings.store)}" required class="inp font-bold"></div>
-      <div><label class="lbl">Teléfonos Autorizados para Login (separados por coma) *</label><input id="setPhones" value="${esc(state.phoneUsers.join(', '))}" required class="inp font-mono text-xs"></div>
-      <button type="submit" class="w-full h-12 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-sm shadow-lg shadow-indigo-600/20 active:scale-95 transition">Guardar Configuración Central</button>
-    </form>
+  <div class="space-y-5 max-w-xl">
+    <div class="bg-white rounded-3xl border border-slate-200/70 p-5 shadow-sm space-y-4">
+      <h2 class="font-extrabold text-slate-900 text-lg">Ajustes de la Tiendita</h2>
+      <form id="settingsForm" class="space-y-4">
+        <div><label class="lbl">Nombre de la Tienda / Negocio *</label><input id="setStore" value="${esc(state.settings.store)}" required class="inp font-bold"></div>
+        <button type="submit" class="w-full h-12 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-sm shadow-lg shadow-indigo-600/20 active:scale-95 transition">Guardar Nombre de Tienda</button>
+      </form>
+    </div>
+
+    <div class="bg-white rounded-3xl border border-slate-200/70 p-5 shadow-sm space-y-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="font-extrabold text-slate-900 text-lg">Personal Autorizado / Encargados</h2>
+          <p class="text-xs text-slate-500">Agrega los números de celular de las personas que pueden atender la tiendita.</p>
+        </div>
+      </div>
+
+      <form id="addPhoneForm" class="flex gap-2">
+        <input id="newPhoneInput" type="tel" placeholder="Nuevo teléfono (10 dígitos)" required class="inp font-mono font-bold flex-1">
+        <button type="submit" class="h-11 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs uppercase tracking-wider shadow-lg shadow-emerald-600/20 active:scale-95 transition shrink-0 flex items-center gap-1">
+          ${icon('plus','w-4 h-4')} Agregar
+        </button>
+      </form>
+
+      <div class="divide-y divide-slate-100 pt-2">
+        ${state.phoneUsers.map(ph=>`
+          <div class="py-3 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="text-base">📱</span>
+              <span class="font-mono font-bold text-sm text-slate-800">${esc(ph)}</span>${ph === state.currentPhone ? `<span class="text-[10px] bg-indigo-50 text-indigo-700 font-extrabold px-2 py-0.5 rounded-full">Sesión Actual</span>` : ''}
+            </div>
+            ${state.phoneUsers.length > 1 ? `
+              <button data-action="remove-phone" data-phone="${esc(ph)}" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-rose-50 text-slate-400 hover:text-rose-600 grid place-items-center transition" title="Eliminar número">
+                ${icon('trash','w-4 h-4')}
+              </button>
+            ` : ''}
+          </div>
+        `).join('')}
+      </div>
+    </div>
   </div>`;
 };
 
@@ -833,14 +935,28 @@ MOUNT.ajustes=()=>{
     f.onsubmit=async e=>{
       e.preventDefault();
       const store=$('#setStore').value.trim();
-      const phones=$('#setPhones').value.split(',').map(p=>p.trim().replace(/[^0-9]/g,'')).filter(Boolean);
-
-      if(!store || !phones.length) return toast('Completa los datos correctamente','warn');
-
+      if(!store) return toast('Completa los datos correctamente','warn');
       state.settings.store = store;
-      state.phoneUsers = phones;
       await save();
-      toast('Configuración guardada correctamente','ok');
+      toast('Nombre guardado correctamente','ok');
+      renderAll();
+    };
+  }
+
+  const phoneForm = $('#addPhoneForm');
+  if(phoneForm){
+    phoneForm.onsubmit = async e => {
+      e.preventDefault();
+      const input = $('#newPhoneInput');
+      if(!input) return;
+      const clean = input.value.replace(/[^0-9]/g, '');
+      if(!clean || clean.length < 8) return toast('Ingresa un número de teléfono válido', 'warn');
+      if(state.phoneUsers.includes(clean)) return toast('Ese teléfono ya está registrado', 'warn');
+
+      state.phoneUsers.push(clean);
+      await save();
+      input.value = '';
+      toast('Teléfono registrado para dar de alta al usuario', 'ok');
       renderAll();
     };
   }
@@ -862,6 +978,47 @@ document.addEventListener('click', async e => {
     state.products = state.products.filter(p=>p.id!==id);
     await save();
     toast('Producto eliminado','ok');
+    renderAll();
+  }
+  else if(act==='scan-pos'){
+    openCameraScannerModal((code) => {
+      const p = state.products.find(item => item.barcode === code);
+      if(p){
+        if(p.stock <= 0){
+          toast(`Producto "${p.name}" agotado`, 'warn');
+        } else {
+          const item = state.cart.find(i => i.id === p.id);
+          if(item){
+            if(item.qty >= p.stock){ toast('Stock máximo alcanzado', 'warn'); return; }
+            item.qty = r3(item.qty + 1);
+          } else {
+            state.cart.push({id: p.id, name: p.name, price: p.price, cost: p.cost, qty: 1});
+          }
+          toast(`Agregado: ${p.name}`, 'ok');
+          renderCartAside(); renderCartBar();
+        }
+      } else {
+        state.ui.posSearch = code;
+        renderPosGrid();
+        toast(`Código de barras: ${code}. No registrado.`, 'info');
+      }
+    });
+  }
+  else if(act==='scan-product-form'){
+    openCameraScannerModal((code) => {
+      const barcodeInput = $('#pBarcode');
+      if(barcodeInput){
+        barcodeInput.value = code;
+        toast(`Código capturado: ${code}`, 'ok');
+      }
+    });
+  }
+  else if(act==='remove-phone'){
+    const ph = b.dataset.phone;
+    if(state.phoneUsers.length <= 1) return toast('Debe haber al menos un número registrado', 'warn');
+    state.phoneUsers = state.phoneUsers.filter(p => p !== ph);
+    await save();
+    toast('Número eliminado del sistema', 'ok');
     renderAll();
   }
   else if(act==='customer-new') openCustomerModal();
