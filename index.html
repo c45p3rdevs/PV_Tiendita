@@ -21,37 +21,8 @@
 </style>
 </head>
 <body class="bg-slate-100 text-slate-800 antialiased">
-<div class="min-h-screen flex">
-  <aside class="hidden lg:flex lg:flex-col w-[258px] shrink-0 bg-slate-900 text-slate-300 sticky top-0 h-screen p-4">
-    <div class="flex items-center gap-3 px-2 py-3">
-      <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 grid place-items-center text-white shadow-lg shadow-indigo-900/40">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007Z"/></svg>
-      </div>
-      <div class="min-w-0"><p id="sideStore" class="font-extrabold text-white text-[15px] leading-tight truncate">Mi Tiendita</p><p class="text-[11px] text-slate-400">Punto de venta</p></div>
-    </div>
-    <nav id="sideNav" class="mt-4 flex flex-col gap-1"></nav>
-    <div class="mt-auto rounded-2xl bg-slate-800/60 border border-slate-700/60 p-3.5 space-y-2 text-[12px]">
-      <div class="flex justify-between"><span class="text-slate-400">Hoy</span><span id="sideToday" class="font-bold text-white">—</span></div>
-      <div class="flex justify-between"><span class="text-slate-400">Ganancia mes</span><span id="sideMonth" class="font-bold text-emerald-400">—</span></div>
-      <div id="sideBadge" class="pt-2 border-t border-slate-700/60 text-[10.5px] leading-snug text-slate-400"></div>
-    </div>
-  </aside>
-  <div class="flex-1 min-w-0 flex flex-col">
-    <header class="sticky top-0 z-30 bg-white/85 glass border-b border-slate-200/80">
-      <div class="px-3 sm:px-6 h-16 flex items-center gap-3">
-        <div class="lg:hidden w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 grid place-items-center text-white shrink-0">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007Z"/></svg>
-        </div>
-        <div class="min-w-0 flex-1"><h1 id="topStore" class="font-extrabold text-slate-900 text-[15px] sm:text-lg truncate leading-tight">Mi Tiendita</h1><p id="topDate" class="text-[11px] text-slate-500 capitalize"></p></div>
-        <div id="topKpis" class="hidden sm:flex items-center gap-2"></div>
-        <div id="storageBadge" class="shrink-0"></div>
-      </div>
-    </header>
-    <main class="flex-1 px-3 sm:px-6 py-4 sm:py-6 pb-32 lg:pb-10"><div id="view" class="fade-up"></div></main>
-  </div>
-</div>
-<nav class="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/92 glass border-t border-slate-200 pb-[env(safe-area-inset-bottom)]"><div id="mobileNav" class="grid grid-cols-6"></div></nav>
-<div id="cartBar"></div>
+
+<div id="appContainer"></div>
 <div id="modalRoot"></div>
 <div id="toasts" class="fixed z-[80] top-3 right-3 left-3 sm:left-auto sm:w-[340px] flex flex-col gap-2 pointer-events-none"></div>
 
@@ -83,13 +54,65 @@ whatsapp:'M12.012 2c-5.506 0-9.989 4.478-9.99 9.984 0 1.758.459 3.474 1.33 4.982
 users:'M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z'};
 const icon=(n,c='w-5 h-5')=>`<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.7" stroke="currentColor" class="${c}"><path stroke-linecap="round" stroke-linejoin="round" d="${IC[n]||''}"/></svg>`;
 
-/* ── ESTADO ───────────────────────────────────────────────── */
+/* ── ESTADO Y CONFIGURACIÓN ───────────────────────────────── */
 const KEY='tiendita-pos-v1';
 let storageOK=true;
-const state={view:'venta',products:[],sales:[],entries:[],customers:[],cart:[],paid:0,payMethod:'Efectivo',creditCustomerId:'',phone:'',
-  settings:{store:'Mi Tiendita',symbol:'$',minStock:5},
-  ui:{posSearch:'',posCat:'',invSearch:'',invCat:'',invLow:false,custSearch:'',entryProduct:'',repMonth:thisMonth()}};
-function save(){try{localStorage.setItem(KEY,JSON.stringify({products:state.products,sales:state.sales,entries:state.entries,customers:state.customers,cart:state.cart,settings:state.settings}));storageOK=true;}catch(e){storageOK=false;}renderBadge();}
+
+function initAppState(){
+  let saved = null;
+  try {
+    const raw = localStorage.getItem(KEY);
+    if(raw) saved = JSON.parse(raw);
+  } catch(e){
+    storageOK = false;
+  }
+  
+  const phoneUsers = (saved && saved.phoneUsers && saved.phoneUsers.length) 
+    ? saved.phoneUsers 
+    : ['4481294345'];
+
+  if(!phoneUsers.includes('4481294345')){
+    phoneUsers.unshift('4481294345');
+  }
+
+  return {
+    loggedIn: false,
+    currentPhone: '',
+    phoneUsers: phoneUsers,
+    view: 'venta',
+    products: saved?.products || [],
+    sales: saved?.sales || [],
+    entries: saved?.entries || [],
+    customers: saved?.customers || [],
+    cart: saved?.cart || [],
+    paid: saved?.paid || 0,
+    payMethod: 'Efectivo',
+    creditCustomerId: '',
+    phone: '',
+    settings: saved?.settings || {store:'Mi Tiendita', symbol:'$', minStock:5},
+    ui: {posSearch:'', posCat:'', invSearch:'', invCat:'', invLow:false, custSearch:'', entryProduct:'', repMonth:thisMonth()}
+  };
+}
+
+const state = initAppState();
+
+function save(){
+  try{
+    localStorage.setItem(KEY, JSON.stringify({
+      phoneUsers: state.phoneUsers,
+      products: state.products,
+      sales: state.sales,
+      entries: state.entries,
+      customers: state.customers,
+      cart: state.cart,
+      settings: state.settings
+    }));
+    storageOK = true;
+  } catch(e){
+    storageOK = false;
+  }
+  renderBadge();
+}
 
 /* ── DEMO ─────────────────────────────────────────────────── */
 const DEMO=[['Frijol negro 1 kg','7501000100011','Abarrotes',27,36,18,5],['Arroz extra 1 kg','7501000100028','Abarrotes',24,32,14,5],['Aceite vegetal 900 ml','7501000100035','Abarrotes',38,49,9,4],['Azúcar 1 kg','7501000100042','Abarrotes',25,33,12,5],['Sal de mesa 1 kg','7501000100059','Abarrotes',12,18,10,4],['Pasta spaghetti 200 g','7501000100066','Abarrotes',9,14,22,6],['Atún en agua 140 g','7501000100073','Abarrotes',17,24,15,6],['Café soluble 50 g','7501000100080','Abarrotes',44,58,7,3],['Chiles jalapeños lata','7501000100097','Abarrotes',13,19,11,4],['Leche entera 1 L','7501000200010','Lácteos',23,29,10,5],['Yogurt natural 900 g','7501000200027','Lácteos',32,42,6,3],['Queso panela 200 g','7501000200034','Lácteos',38,52,5,3],['Huevo blanco 12 pzas','7501000200041','Lácteos',39,50,8,4],['Crema ácida 450 g','7501000200058','Lácteos',29,39,5,3],['Refresco cola 2 L','7501000300019','Bebidas',28,39,16,6],['Agua natural 1.5 L','7501000300026','Bebidas',11,17,20,8],['Jugo de naranja 1 L','7501000300033','Bebidas',24,33,9,4],['Bebida energética 600 ml','7501000300040','Bebidas',27,38,6,3],['Sabritas original 45 g','7501000400018','Botanas',13,19,24,8],['Galletas de chocolate','7501000400025','Botanas',12,18,20,8],['Cacahuates salados 100 g','7501000400032','Botanas',14,21,14,5],['Pan blanco grande','7501000500017','Panadería',26,36,6,3],['Pan dulce concha','7501000500024','Panadería',6,12,20,6],['Jabón de barra','7501000600016','Limpieza',14,21,10,4],['Detergente 1 kg','7501000600023','Limpieza',34,47,7,3],['Cloro 1 L','7501000600030','Limpieza',18,26,8,3],['Papel higiénico 4 rollos','7501000700015','Higiene',29,41,9,4],['Pasta dental 100 ml','7501000700022','Higiene',24,35,7,3],['Chocolate en barra','7501000800014','Dulces',11,17,25,8],['Paleta de caramelo','7501000800021','Dulces',3,6,40,12]];
@@ -270,40 +293,170 @@ const kpi=(l,v,t='slate')=>`<div class="px-3 py-1.5 rounded-xl bg-slate-100/80 b
 const NAV=[{id:'venta',label:'Vender',icon:'cart'},{id:'inventario',label:'Inventario',icon:'box'},{id:'creditos',label:'Fiados',icon:'users'},{id:'entradas',label:'Entradas',icon:'truck'},{id:'reportes',label:'Ganancias',icon:'chart'},{id:'ajustes',label:'Ajustes',icon:'gear'}];
 function renderNav(){
   const globalDebt = totalGlobalDebt();
-  $('#sideNav').innerHTML=NAV.map(n=>{
-    const on=state.view===n.id;
-    return `<button data-action="go" data-view="${n.id}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-semibold transition ${on?'bg-indigo-600 text-white shadow-lg shadow-indigo-900/30':'text-slate-400 hover:bg-slate-800 hover:text-white'}">
-      ${icon(n.icon,'w-5 h-5 shrink-0')}
-      <span class="flex-1 text-left">${n.label}</span>
-      ${lowStockList().length&&n.id==='inventario'?`<span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded-full ${on?'bg-white/25 text-white':'bg-amber-500/20 text-amber-400'}">${lowStockList().length}</span>`:''}
-      ${globalDebt>0&&n.id==='creditos'?`<span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded-full ${on?'bg-white/25 text-white':'bg-rose-500/20 text-rose-400'}">${MXN0(globalDebt)}</span>`:''}
-    </button>`;
-  }).join('');
+  const sideNav = $('#sideNav');
+  if(sideNav){
+    sideNav.innerHTML=NAV.map(n=>{
+      const on=state.view===n.id;
+      return `<button data-action="go" data-view="${n.id}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-semibold transition ${on?'bg-indigo-600 text-white shadow-lg shadow-indigo-900/30':'text-slate-400 hover:bg-slate-800 hover:text-white'}">
+        ${icon(n.icon,'w-5 h-5 shrink-0')}
+        <span class="flex-1 text-left">${n.label}</span>
+        ${lowStockList().length&&n.id==='inventario'?`<span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded-full ${on?'bg-white/25 text-white':'bg-amber-500/20 text-amber-400'}">${lowStockList().length}</span>`:''}
+        ${globalDebt>0&&n.id==='creditos'?`<span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded-full ${on?'bg-white/25 text-white':'bg-rose-500/20 text-rose-400'}">${MXN0(globalDebt)}</span>`:''}
+      </button>`;
+    }).join('');
+  }
   
-  $('#mobileNav').innerHTML=NAV.map(n=>{
-    const on=state.view===n.id;
-    return `<button data-action="go" data-view="${n.id}" class="relative flex flex-col items-center gap-1 py-2.5 ${on?'text-indigo-600':'text-slate-400'}">
-      ${on?'<span class="absolute top-0 h-[3px] w-9 rounded-b-full bg-indigo-600"></span>':''}
-      ${icon(n.icon,'w-[22px] h-[22px]')}
-      <span class="text-[10px] font-bold">${n.label}</span>
-    </button>`;
-  }).join('');
+  const mobileNav = $('#mobileNav');
+  if(mobileNav){
+    mobileNav.innerHTML=NAV.map(n=>{
+      const on=state.view===n.id;
+      return `<button data-action="go" data-view="${n.id}" class="relative flex flex-col items-center gap-1 py-2.5 ${on?'text-indigo-600':'text-slate-400'}">
+        ${on?'<span class="absolute top-0 h-[3px] w-9 rounded-b-full bg-indigo-600"></span>':''}
+        ${icon(n.icon,'w-[22px] h-[22px]')}
+        <span class="text-[10px] font-bold">${n.label}</span>
+      </button>`;
+    }).join('');
+  }
 }
+
 function renderBadge(){
-  $('#storageBadge').innerHTML=storageOK?`<span class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[10.5px] font-bold border border-emerald-200 whitespace-nowrap">${icon('check','w-3.5 h-3.5')} Guardado</span>`:`<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-[10.5px] font-bold border border-amber-200 whitespace-nowrap">${icon('warn','w-3.5 h-3.5')} Solo en memoria</span>`;
-  $('#sideBadge').innerHTML=storageOK?'Los datos quedan guardados en este dispositivo.':'Vista previa sin guardado: abre el archivo en el navegador para persistir datos.';
+  const sb = $('#storageBadge'), sbd = $('#sideBadge');
+  if(sb) sb.innerHTML=storageOK?`<span class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[10.5px] font-bold border border-emerald-200 whitespace-nowrap">${icon('check','w-3.5 h-3.5')} Guardado</span>`:`<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-[10.5px] font-bold border border-amber-200 whitespace-nowrap">${icon('warn','w-3.5 h-3.5')} Solo en memoria</span>`;
+  if(sbd) sbd.innerHTML=storageOK?'Los datos quedan guardados en este dispositivo.':'Vista previa sin guardado: abre el archivo en el navegador para persistir datos.';
 }
+
 function updateHeaderStats(){
   const t=dayStats(today()),m=monthStats(thisMonth()), debt=totalGlobalDebt();
-  $('#topStore').textContent=$('#sideStore').textContent=state.settings.store;
-  $('#topDate').textContent=new Date().toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long'});
-  $('#topKpis').innerHTML=kpi('Ventas hoy',MXN0(t.revenue))+kpi('Por cobrar',MXN0(debt),'rose')+kpi('Ganancia mes',MXN0(m.profit),'emerald');
-  $('#sideToday').textContent=`${t.count} · ${MXN0(t.revenue)}`;$('#sideMonth').textContent=MXN0(m.profit);
+  const ts = $('#topStore'), ss = $('#sideStore'), td = $('#topDate'), tk = $('#topKpis'), st = $('#sideToday'), sm = $('#sideMonth');
+  if(ts && ss) ts.textContent = ss.textContent = state.settings.store;
+  if(td) td.textContent = new Date().toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long'});
+  if(tk) tk.innerHTML = kpi('Ventas hoy',MXN0(t.revenue))+kpi('Por cobrar',MXN0(debt),'rose')+kpi('Ganancia mes',MXN0(m.profit),'emerald');
+  if(st) st.textContent = `${t.count} · ${MXN0(t.revenue)}`;
+  if(sm) sm.textContent = MXN0(m.profit);
 }
+
 const VIEWS={},MOUNT={};
 function go(v){state.view=v;renderView();renderNav();renderCartBar();window.scrollTo({top:0,behavior:'smooth'});}
 function renderAll(){renderNav();updateHeaderStats();renderView();renderCartBar();renderBadge();}
-function renderView(){const el=$('#view');el.classList.remove('fade-up');void el.offsetWidth;el.classList.add('fade-up');el.innerHTML=VIEWS[state.view]();if(MOUNT[state.view])MOUNT[state.view]();}
+function renderView(){const el=$('#view');if(!el)return;el.classList.remove('fade-up');void el.offsetWidth;el.classList.add('fade-up');el.innerHTML=VIEWS[state.view]();if(MOUNT[state.view])MOUNT[state.view]();}
+
+/* ── PANTALLA DE LOGIN Y VISTAS DE APP ────────────────────── */
+function renderLoginScreen(){
+  return `
+  <div class="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-white/95 glass rounded-3xl shadow-2xl p-6 sm:p-8 space-y-6 pop border border-white/20">
+      <div class="text-center space-y-2">
+        <div class="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 grid place-items-center text-white shadow-xl shadow-indigo-500/30">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="w-9 h-9"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007Z"/></svg>
+        </div>
+        <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">${esc(state.settings.store || 'Mi Tiendita')}</h1>
+        <p class="text-xs font-semibold text-indigo-600 uppercase tracking-widest">Punto de Venta · Acceso</p>
+      </div>
+
+      <form id="loginForm" class="space-y-4">
+        <div>
+          <label class="lbl text-slate-600 font-extrabold mb-1">Número de Teléfono Registrado</label>
+          <div class="relative">
+            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-mono text-base">📱</span>
+            <input id="loginPhoneInput" type="tel" placeholder="Tu numero de celular" autocomplete="tel" required
+              class="w-full pl-11 pr-4 h-13 rounded-2xl bg-slate-100 border border-slate-200 focus:bg-white focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/10 outline-none text-lg font-mono font-bold text-slate-900 tracking-wider">
+          </div>
+          <p class="text-[11px] text-slate-500 mt-1.5 leading-relaxed">
+            Ingresa tu número registrado para atender en la tiendita.
+          </p>
+        </div>
+
+        <button type="submit" class="w-full h-13 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-extrabold text-base flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30 active:scale-[0.98] transition">
+          Ingresar a la Tiendita ${icon('arrow','w-5 h-5')}
+        </button>
+      </form>
+
+      <div class="pt-4 border-t border-slate-200/60 text-center">
+        <p class="text-xs text-slate-400">
+          ¿No tienes acceso? Pide al encargado que registre tu número en Ajustes.
+        </p>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderApp(){
+  const container = $('#appContainer');
+  if(!container) return;
+
+  if(!state.loggedIn){
+    container.innerHTML = renderLoginScreen();
+    const loginForm = $('#loginForm');
+    if(loginForm){
+      loginForm.onsubmit = e => {
+        e.preventDefault();
+        const input = $('#loginPhoneInput');
+        if(!input) return;
+        const clean = input.value.replace(/[^0-9]/g, '');
+        if(state.phoneUsers.includes(clean)){
+          state.loggedIn = true;
+          state.currentPhone = clean;
+          toast(`¡Bienvenido! Atendiendo con ${clean}`, 'ok');
+          renderApp();
+        } else {
+          toast('Número de teléfono no registrado en el sistema', 'error');
+        }
+      };
+    }
+    return;
+  }
+
+  container.innerHTML = `
+  <div class="min-h-screen flex">
+    <aside class="hidden lg:flex lg:flex-col w-[258px] shrink-0 bg-slate-900 text-slate-300 sticky top-0 h-screen p-4">
+      <div class="flex items-center gap-3 px-2 py-3">
+        <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 grid place-items-center text-white shadow-lg shadow-indigo-900/40">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007Z"/></svg>
+        </div>
+        <div class="min-w-0">
+          <p id="sideStore" class="font-extrabold text-white text-[15px] leading-tight truncate">${esc(state.settings.store)}</p>
+          <p class="text-[11px] text-slate-400 flex items-center gap-1">📱 ${esc(state.currentPhone)}</p>
+        </div>
+      </div>
+      <nav id="sideNav" class="mt-4 flex flex-col gap-1"></nav>
+      <div class="mt-auto rounded-2xl bg-slate-800/60 border border-slate-700/60 p-3.5 space-y-2 text-[12px]">
+        <div class="flex justify-between"><span class="text-slate-400">Hoy</span><span id="sideToday" class="font-bold text-white">—</span></div>
+        <div class="flex justify-between"><span class="text-slate-400">Ganancia mes</span><span id="sideMonth" class="font-bold text-emerald-400">—</span></div>
+        <div id="sideBadge" class="pt-2 border-t border-slate-700/60 text-[10.5px] leading-snug text-slate-400"></div>
+      </div>
+    </aside>
+
+    <div class="flex-1 min-w-0 flex flex-col">
+      <header class="sticky top-0 z-30 bg-white/85 glass border-b border-slate-200/80">
+        <div class="px-3 sm:px-6 h-16 flex items-center gap-3">
+          <div class="lg:hidden w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 grid place-items-center text-white shrink-0">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007Z"/></svg>
+          </div>
+          <div class="min-w-0 flex-1">
+            <h1 id="topStore" class="font-extrabold text-slate-900 text-[15px] sm:text-lg truncate leading-tight">${esc(state.settings.store)}</h1>
+            <p id="topDate" class="text-[11px] text-slate-500 capitalize"></p>
+          </div>
+          <div id="topKpis" class="hidden sm:flex items-center gap-2"></div>
+          <div id="storageBadge" class="shrink-0"></div>
+          <button data-action="logout" class="h-9 px-3 rounded-xl bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-600 font-bold text-xs flex items-center gap-1 transition shrink-0" title="Cerrar Sesión">
+            🔒 <span class="hidden md:inline">Salir</span>
+          </button>
+        </div>
+      </header>
+
+      <main class="flex-1 px-3 sm:px-6 py-4 sm:py-6 pb-32 lg:pb-10">
+        <div id="view" class="fade-up"></div>
+      </main>
+    </div>
+  </div>
+
+  <nav class="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/92 glass border-t border-slate-200 pb-[env(safe-area-inset-bottom)]">
+    <div id="mobileNav" class="grid grid-cols-6"></div>
+  </nav>
+  <div id="cartBar"></div>`;
+
+  renderAll();
+}
 
 /* ── VISTA VENDER ─────────────────────────────────────────── */
 function filteredProducts(){const q=state.ui.posSearch.trim().toLowerCase();return state.products.filter(p=>!state.ui.posCat||p.cat===state.ui.posCat).filter(p=>!q||p.name.toLowerCase().includes(q)||(p.barcode||'').includes(q)).sort((a,b)=>a.name.localeCompare(b.name,'es'));}
@@ -327,8 +480,10 @@ VIEWS.venta=()=>{const t=dayStats(today());return `
   </div>
   <aside id="cartAside" class="hidden lg:block sticky top-24"></aside>
 </div>`;};
+
 function renderPosChips(){
-  $('#posChips').innerHTML=[{id:'',label:'Todos'},...productCats().map(c=>({id:c,label:c}))].map(c=>{const on=state.ui.posCat===c.id,col=c.id?catColor(c.id):'#4f46e5';return `<button data-action="pos-cat" data-cat="${esc(c.id)}" class="shrink-0 px-3 py-1.5 rounded-full text-[12px] font-bold border active:scale-95 transition" style="${on?`background:${col};border-color:${col};color:#fff`:'background:#fff;border-color:#e2e8f0;color:#475569'}">${esc(c.label)}</button>`;}).join('');
+  const pc = $('#posChips'); if(!pc) return;
+  pc.innerHTML=[{id:'',label:'Todos'},...productCats().map(c=>({id:c,label:c}))].map(c=>{const on=state.ui.posCat===c.id,col=c.id?catColor(c.id):'#4f46e5';return `<button data-action="pos-cat" data-cat="${esc(c.id)}" class="shrink-0 px-3 py-1.5 rounded-full text-[12px] font-bold border active:scale-95 transition" style="${on?`background:${col};border-color:${col};color:#fff`:'background:#fff;border-color:#e2e8f0;color:#475569'}">${esc(c.label)}</button>`;}).join('');
 }
 function renderPosGrid(){
   const list=filteredProducts(),g=$('#posGrid');if(!g)return;
@@ -710,233 +865,395 @@ VIEWS.reportes=()=>{
   </div>`;
 };
 
-/* ── VISTA AJUSTES ────────────────────────────────────────── */
+/* ── VISTA AJUSTES Y TELÉFONOS AUTORIZADOS ────────────────── */
 VIEWS.ajustes=()=>`
-<div class="max-w-xl mx-auto space-y-4">
+<div class="max-w-2xl mx-auto space-y-5">
   <div class="bg-white rounded-3xl border border-slate-200/70 p-5 space-y-4 shadow-sm">
-    <h2 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">${icon('gear','w-6 h-6 text-indigo-600')} Configuración del Sistema</h2>
+    <h2 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+      ${icon('gear','w-6 h-6 text-indigo-600')} Configuración de la Tienda
+    </h2>
     <form id="settingsForm" class="space-y-3.5">
-      <div><label class="lbl">Nombre del Negocio / Tienda</label><input name="store" value="${esc(state.settings.store)}" class="inp font-bold"></div>
-      <div><label class="lbl">Símbolo de Moneda</label><input name="symbol" value="${esc(state.settings.symbol)}" class="inp font-bold"></div>
-      <button type="submit" class="w-full h-11 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[14px] shadow-lg shadow-indigo-600/20 active:scale-95 transition">Guardar Cambios</button>
+      <div>
+        <label class="lbl">Nombre de la Tiendita</label>
+        <input name="store" value="${esc(state.settings.store)}" class="inp font-bold text-slate-800">
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="lbl">Símbolo de Moneda</label>
+          <input name="symbol" value="${esc(state.settings.symbol)}" class="inp font-bold text-center">
+        </div>
+        <div>
+          <label class="lbl">Alerta Stock Mínimo Default</label>
+          <input name="minStock" type="number" value="${state.settings.minStock}" class="inp font-bold text-center">
+        </div>
+      </div>
+      <button type="submit" class="w-full h-11 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-md shadow-indigo-600/20 active:scale-95 transition">
+        Guardar Configuración
+      </button>
     </form>
   </div>
-  <div class="bg-white rounded-3xl border border-slate-200/70 p-5 space-y-3">
-    <h3 class="font-extrabold text-slate-900 text-sm">Base de Datos & Datos Demo</h3>
-    <p class="text-xs text-slate-500 leading-relaxed">Puedes cargar datos de demostración para probar el sistema o reiniciar la base de datos por completo.</p>
-    <div class="pt-2 flex flex-col sm:flex-row gap-2">
-      <button data-action="seed-demo" class="flex-1 h-11 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition">⚡ Cargar Datos Demo</button>
-      <button data-action="reset-all" class="flex-1 h-11 rounded-2xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs transition">🗑️ Borrar Todo el Sistema</button>
+
+  <div class="bg-white rounded-3xl border border-slate-200/70 p-5 space-y-4 shadow-sm">
+    <div class="flex items-center justify-between">
+      <div>
+        <h2 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+          📱 Personal / Teléfonos para Login
+        </h2>
+        <p class="text-xs text-slate-500 mt-0.5">Registra los números de teléfono autorizados para ingresar y atender la tiendita.</p>
+      </div>
+    </div>
+
+    <form id="addPhoneForm" class="flex gap-2">
+      <input id="newPhoneInput" name="newPhone" type="tel" placeholder="Ej. 4481234567" required class="inp font-mono flex-1">
+      <button type="submit" class="h-11 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shrink-0 flex items-center gap-1.5 shadow-md shadow-emerald-600/20 active:scale-95 transition">
+        ${icon('plus','w-4 h-4')} Registrar Número
+      </button>
+    </form>
+
+    <div class="space-y-2 pt-2 border-t border-slate-100">
+      <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Teléfonos Registrados (${state.phoneUsers.length}):</p>
+      <div class="divide-y divide-slate-100 max-h-60 overflow-y-auto">
+        ${state.phoneUsers.map(ph => {
+          const isCurrent = state.currentPhone === ph;
+          return `<div class="py-2.5 flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <span class="w-8 h-8 rounded-full bg-slate-100 grid place-items-center text-slate-600 font-mono text-xs font-bold">📱</span>
+              <div>
+                <p class="font-mono font-extrabold text-slate-800 text-[14px]">${esc(ph)}</p>${isCurrent ? `<span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">Sesión Actual</span>` : ''}
+              </div>
+            </div>
+            <button data-action="del-phone" data-phone="${ph}" class="h-8 px-2.5 rounded-lg bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-400 text-xs font-bold transition flex items-center gap-1">
+              ${icon('trash','w-3.5 h-3.5')} Eliminar
+            </button>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-3xl border border-slate-200/70 p-5 space-y-4 shadow-sm">
+    <h2 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+      ⚡ Sesión & Mantenimiento
+    </h2>
+    <div class="grid sm:grid-cols-2 gap-3">
+      <button data-action="logout" class="w-full h-12 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-sm flex items-center justify-center gap-2 shadow-md shadow-amber-500/20 active:scale-95 transition">
+        🔒 Cerrar Sesión (${esc(state.currentPhone || 'Usuario')})
+      </button>
+      <button data-action="seed-demo" class="w-full h-12 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-sm flex items-center justify-center gap-2 shadow-md shadow-slate-900/20 active:scale-95 transition">
+        🔄 Cargar Datos Demo
+      </button>
     </div>
   </div>
 </div>`;
 
-MOUNT.ajustes=()=>{
-  const form=$('#settingsForm');
-  if(form){
-    form.onsubmit=e=>{
-      e.preventDefault();const fd=new FormData(form);
-      state.settings.store=fd.get('store').trim()||'Mi Tiendita';
-      state.settings.symbol=fd.get('symbol').trim()||'$';
-      save();toast('Ajustes guardados');renderAll();
+MOUNT.ajustes = () => {
+  const form = $('#settingsForm');
+  if (form) {
+    form.onsubmit = e => {
+      e.preventDefault();
+      const fd = new FormData(form);
+      state.settings.store = fd.get('store').trim() || 'Mi Tiendita';
+      state.settings.symbol = fd.get('symbol').trim() || '$';
+      state.settings.minStock = num(fd.get('minStock')) || 5;
+      save();
+      toast('Configuración guardada');
+      renderAll();
+    };
+  }
+
+  const phoneForm = $('#addPhoneForm');
+  if (phoneForm) {
+    phoneForm.onsubmit = e => {
+      e.preventDefault();
+      const fd = new FormData(phoneForm);
+      const raw = fd.get('newPhone') || '';
+      const clean = raw.replace(/[^0-9]/g, '');
+      if (clean.length < 7) {
+        toast('Ingresa un número de teléfono válido (mínimo 7 dígitos)', 'warn');
+        return;
+      }
+      if (state.phoneUsers.includes(clean)) {
+        toast('Este número ya está registrado', 'warn');
+        return;
+      }
+      state.phoneUsers.push(clean);
+      save();
+      toast('Teléfono registrado correctamente');
+      renderAll();
     };
   }
 };
 
-/* ── ESCÁNER DE CÓDIGO DE BARRAS (CÁMARA) ─────────────────── */
-let streamTrack=null;
-function startScanner(onScan){
-  openModal(modalHead('Escanear Código de Barras')+`
-  <div class="p-4 space-y-3 text-center">
-    <div class="relative w-full aspect-square max-w-[280px] mx-auto bg-slate-900 rounded-3xl overflow-hidden border-4 border-indigo-500/30">
-      <video id="scanVideo" class="w-full h-full object-cover" playsinline></video>
-      <div class="absolute inset-x-0 h-0.5 bg-rose-500 scanline shadow-[0_0_8px_#f43f5e]"></div>
+/* ── ESCÁNER MODAL ────────────────────────────────────────── */
+let scannerActive = false;
+function stopScanner() { scannerActive = false; }
+function openScannerModal(targetMode = 'pos', fieldTarget = null) {
+  openModal(modalHead('Escáner de Código de Barras', 'Ingresa o simula la lectura de código') + `
+  <div class="p-5 space-y-4">
+    <div class="bg-slate-900 rounded-2xl p-6 text-center text-white relative overflow-hidden">
+      <div class="scanline absolute inset-x-0 h-0.5 bg-indigo-500 shadow-[0_0_8px_#6366f1]"></div>
+      <p class="text-xs text-slate-400">Escanear código con cámara o lector USB</p>
+      <input id="scannerInput" autofocus placeholder="Escribe o escanea código..." class="mt-4 w-full h-11 px-3 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-center outline-none focus:border-indigo-500">
     </div>
-    <p class="text-xs text-slate-500 font-medium">Apunta la cámara al código de barras del producto</p>
-    <button data-action="close-modal" class="w-full h-11 rounded-xl bg-slate-100 font-bold text-slate-700 text-xs">Cancelar Escaneo</button>
-  </div>`,()=>{
-    const video=$('#scanVideo');if(!video)return;
-    if('BarcodeDetector' in window){
-      const detector=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e','code_128','code_39']});
-      navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}}).then(stream=>{
-        streamTrack=stream.getVideoTracks()[0];video.srcObject=stream;video.play();
-        const interval=setInterval(()=>{
-          if(!video.onloadedmetadata)return;
-          detector.detect(video).then(codes=>{
-            if(codes.length>0){clearInterval(interval);const code=codes[0].rawValue;closeModal();onScan(code);}
-          }).catch(()=>{});
-        },300);
-      }).catch(()=>{toast('No se pudo acceder a la cámara','error');closeModal();});
-    }else{
-      toast('Tu navegador no soporta detección automática de barras. Ingresa el código manualmente.','warn');
-    }
+    <div class="flex gap-2">
+      <button data-action="close-modal" class="flex-1 h-11 rounded-xl bg-slate-100 font-semibold text-slate-700">Cerrar</button>
+      <button id="btnConfirmScan" class="flex-1 h-11 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold">Buscar Código</button>
+    </div>
+  </div>`, () => {
+    const inp = $('#scannerInput');
+    if (inp) inp.focus();
+    const handleScan = () => {
+      const val = inp ? inp.value.trim() : '';
+      if (!val) return;
+      closeModal();
+      if (fieldTarget) {
+        const el = $('#' + fieldTarget);
+        if (el) el.value = val;
+      } else if (targetMode === 'pos') {
+        const p = state.products.find(x => x.barcode === val || x.name.toLowerCase().includes(val.toLowerCase()));
+        if (p) {
+          state.cart.push({ id: p.id, name: p.name, price: p.price, cost: p.cost, qty: 1 });
+          toast(`Agregado: ${p.name}`);
+          renderCartAside();
+          renderCartBar();
+        } else {
+          toast('Producto no encontrado', 'warn');
+        }
+      } else if (targetMode === 'inv') {
+        state.ui.invSearch = val;
+        renderView();
+      }
+    };
+    $('#btnConfirmScan').onclick = handleScan;
+    if(inp) inp.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); handleScan(); } };
   });
 }
-function stopScanner(){if(streamTrack){streamTrack.stop();streamTrack=null;}}
 
-/* ── MANEJADOR DE EVENTOS GLOBAL ──────────────────────────── */
-document.addEventListener('click',e=>{
-  const btn=e.target.closest('[data-action]');if(!btn)return;
-  const act=btn.dataset.action;
-  if(act==='go')go(btn.dataset.view);
-  else if(act==='close-modal')closeModal();
-  else if(act==='confirm-yes'){if(confirmCb)confirmCb();closeModal();}
-  else if(act==='pos-cat'){state.ui.posCat=btn.dataset.cat;renderPosChips();renderPosGrid();}
-  else if(act==='add'){
-    const p=getProduct(btn.dataset.id);if(!p||p.stock<=0)return;
-    const item=state.cart.find(i=>i.id===p.id);
-    if(item){if(item.qty+1>p.stock){toast(`Stock insuficiente (máx ${p.stock})`,'warn');return;}item.qty=r3(item.qty+1);}
-    else state.cart.push({id:p.id,name:p.name,price:p.price,cost:p.cost,qty:1});
-    save();renderCartAside();renderCartBar();
-  }
-  else if(act==='qty-inc'){
-    const item=state.cart.find(i=>i.id===btn.dataset.id),p=getProduct(btn.dataset.id);
-    if(item&&p){if(item.qty+1>p.stock){toast('Límite de stock alcanzado','warn');return;}item.qty=r3(item.qty+1);save();renderCartAside();renderCartBar();}
-  }
-  else if(act==='qty-dec'){
-    const item=state.cart.find(i=>i.id===btn.dataset.id);
-    if(item){item.qty=r3(item.qty-1);if(item.qty<=0)state.cart=state.cart.filter(i=>i.id!==item.id);save();renderCartAside();renderCartBar();}
-  }
-  else if(act==='cart-del'){
-    state.cart=state.cart.filter(i=>i.id!==btn.dataset.id);save();renderCartAside();renderCartBar();
-  }
-  else if(act==='cart-clear'){state.cart=[];state.paid=0;save();renderCartAside();renderCartBar();}
-  else if(act==='pay'){state.payMethod=btn.dataset.m;renderCartAside();}
-  else if(act==='quick-paid'){state.paid=Number(btn.dataset.v)||0;renderCartAside();}
-  else if(act==='checkout'){
-    if(!state.cart.length)return;
-    const t=cartTotals();
-    if(state.payMethod==='Efectivo' && state.paid<t.sub){toast('Monto recibido insuficiente','warn');return;}
-    if(state.payMethod==='Crédito' && !state.creditCustomerId){toast('Selecciona un cliente para dar fiado','warn');return;}
-    
-    for(const i of state.cart){
-      const p=getProduct(i.id);
-      if(p)p.stock=r3(p.stock-i.qty);
+/* ── EVENT DELEGATION GLOBAL ──────────────────────────────── */
+document.addEventListener('click', e => {
+  const btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  const act = btn.dataset.action;
+
+  if (act === 'go') {
+    state.view = btn.dataset.view;
+    renderView();
+    renderNav();
+    renderCartBar();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } else if (act === 'logout') {
+    state.loggedIn = false;
+    state.currentPhone = '';
+    toast('Sesión cerrada', 'info');
+    renderApp();
+  } else if (act === 'del-phone') {
+    const ph = btn.dataset.phone;
+    if (state.phoneUsers.length <= 1) {
+      toast('Debe haber al menos un teléfono registrado en el sistema', 'warn');
+      return;
     }
-    const saleObj={id:uid(),date:stamp(),items:[...state.cart],total:t.sub,profit:t.profit,payMethod:state.payMethod,customerId:state.payMethod==='Crédito'?state.creditCustomerId:null,paid:state.payMethod==='Crédito'?0:(state.paid||t.sub),change:state.payMethod==='Crédito'?0:t.change};
-    state.sales.unshift(saleObj);
-    
-    const cust = state.payMethod==='Crédito'? getCustomer(state.creditCustomerId) : null;
-    const targetPhone = cust && cust.phone ? cust.phone : state.phone;
-    
-    state.cart=[];state.paid=0;save();
-    showSuccess(t.sub,saleObj.change,state.payMethod,saleObj);
-    if(cust) state.phone = cust.phone;
+    confirmDialog('Eliminar Teléfono', `¿Deseas eliminar el número ${ph} de la lista de autorizados?`, () => {
+      state.phoneUsers = state.phoneUsers.filter(p => p !== ph);
+      save();
+      toast('Número eliminado correctamente');
+      closeModal();
+      renderAll();
+    });
+  } else if (act === 'seed-demo') {
+    seedDemo();
+    toast('Datos demo cargados');
     renderAll();
-  }
-  else if(act==='send-wa-cart'){
-    if(!state.cart.length){toast('El carrito está vacío','warn');return;}
-    const t=cartTotals();
-    const tempSale={date:stamp(),items:[...state.cart],total:t.sub,payMethod:state.payMethod,customerId:state.payMethod==='Crédito'?state.creditCustomerId:null,paid:state.paid||t.sub,change:t.change};
-    sendWhatsAppTicket(tempSale, state.phone);
-  }
-  else if(act==='sale-wa'){
-    const s=state.sales.find(x=>x.id===btn.dataset.id);
-    if(s) {
-      const c = s.customerId ? getCustomer(s.customerId) : null;
-      sendWhatsAppTicket(s, c?c.phone:'');
+  } else if (act === 'pos-cat') {
+    state.ui.posCat = btn.dataset.cat;
+    renderPosChips();
+    renderPosGrid();
+  } else if (act === 'add') {
+    const p = getProduct(btn.dataset.id);
+    if (!p || p.stock <= 0) return;
+    const item = state.cart.find(i => i.id === p.id);
+    if (item) {
+      if (item.qty < p.stock) item.qty++;
+      else toast('Stock insuficiente', 'warn');
+    } else {
+      state.cart.push({ id: p.id, name: p.name, price: p.price, cost: p.cost, qty: 1 });
     }
-  }
-  else if(act==='customer-new') openCustomerModal();
-  else if(act==='customer-edit') openCustomerModal(getCustomer(btn.dataset.id));
-  else if(act==='customer-pay') openPaymentModal(btn.dataset.id);
-  else if(act==='customer-wa-debt') sendWhatsAppDebtTicket(btn.dataset.id);
-  else if(act==='open-cart-modal')openCartModal();
-  else if(act==='inv-filter-low'){state.ui.invLow=!state.ui.invLow;renderView();}
-  else if(act==='inv-cat'){state.ui.invLow=false;state.ui.invCat=btn.dataset.cat;renderView();}
-  else if(act==='product-new')openProductModal();
-  else if(act==='product-edit')openProductModal(getProduct(btn.dataset.id));
-  else if(act==='product-del'){
-    const id=btn.dataset.id,p=getProduct(id);
-    confirmDialog('Eliminar producto',`¿Estás seguro de eliminar "${p?.name}"?`,()=>{
-      state.products=state.products.filter(x=>x.id!==id);save();toast('Producto eliminado');renderAll();
+    renderCartAside();
+    renderCartBar();
+  } else if (act === 'qty-inc') {
+    const p = getProduct(btn.dataset.id);
+    const item = state.cart.find(i => i.id === btn.dataset.id);
+    if (item && p && item.qty < p.stock) item.qty++;
+    renderCartAside();
+    renderCartBar();
+  } else if (act === 'qty-dec') {
+    const item = state.cart.find(i => i.id === btn.dataset.id);
+    if (item) {
+      item.qty--;
+      if (item.qty <= 0) state.cart = state.cart.filter(i => i.id !== btn.dataset.id);
+    }
+    renderCartAside();
+    renderCartBar();
+  } else if (act === 'cart-del') {
+    state.cart = state.cart.filter(i => i.id !== btn.dataset.id);
+    renderCartAside();
+    renderCartBar();
+  } else if (act === 'cart-clear') {
+    state.cart = [];
+    renderCartAside();
+    renderCartBar();
+  } else if (act === 'pay') {
+    state.payMethod = btn.dataset.m;
+    renderCartAside();
+  } else if (act === 'quick-paid') {
+    state.paid = num(btn.dataset.v);
+    renderCartAside();
+  } else if (act === 'checkout') {
+    if (!state.cart.length) return;
+    const t = cartTotals();
+    if (state.payMethod === 'Efectivo' && t.due > 0) {
+      toast('Falta cubrir el saldo total', 'warn');
+      return;
+    }
+    if (state.payMethod === 'Crédito' && !state.creditCustomerId) {
+      toast('Selecciona un cliente para el crédito', 'warn');
+      return;
+    }
+    for (const item of state.cart) {
+      const p = getProduct(item.id);
+      if (p) p.stock = r3(p.stock - item.qty);
+    }
+    const saleObj = {
+      id: uid(),
+      date: stamp(),
+      items: [...state.cart],
+      total: t.sub,
+      profit: t.profit,
+      payMethod: state.payMethod,
+      customerId: state.payMethod === 'Crédito' ? state.creditCustomerId : null,
+      paid: state.payMethod === 'Efectivo' ? state.paid : t.sub,
+      change: t.change
+    };
+    state.sales.unshift(saleObj);
+    showSuccess(t.sub, t.change, state.payMethod, saleObj);
+    state.cart = [];
+    state.paid = 0;
+    save();
+    closeModal();
+    renderAll();
+  } else if (act === 'open-cart-modal') {
+    openCartModal();
+  } else if (act === 'close-modal') {
+    closeModal();
+  } else if (act === 'confirm-yes') {
+    if (confirmCb) confirmCb();
+  } else if (act === 'scan') {
+    openScannerModal(btn.dataset.mode || 'pos');
+  } else if (act === 'scan-field') {
+    openScannerModal('field', btn.dataset.target);
+  } else if (act === 'product-new') {
+    openProductModal();
+  } else if (act === 'product-edit') {
+    openProductModal(getProduct(btn.dataset.id));
+  } else if (act === 'product-del') {
+    const p = getProduct(btn.dataset.id);
+    confirmDialog('Eliminar Producto', `¿Eliminar "${p?.name}" del inventario?`, () => {
+      state.products = state.products.filter(x => x.id !== btn.dataset.id);
+      save();
+      toast('Producto eliminado');
+      closeModal();
+      renderAll();
     });
-  }
-  else if(act==='inv-quick-entry'){
-    state.ui.entryProduct=btn.dataset.id;go('entradas');
-  }
-  else if(act==='sale-cancel'){
-    const id=btn.dataset.id,s=state.sales.find(x=>x.id===id);
-    if(!s)return;
-    confirmDialog('Anular venta',`¿Anular venta por ${MXN(s.total)}? Los productos se devolverán al inventario.`,()=>{
-      s.cancelled=true;
-      s.items.forEach(i=>{const p=getProduct(i.id);if(p)p.stock=r3(p.stock+i.qty);});
-      save();toast('Venta anulada');renderAll();
+  } else if (act === 'inv-quick-entry') {
+    state.ui.entryProduct = btn.dataset.id;
+    go('entradas');
+  } else if (act === 'inv-filter-low') {
+    state.ui.invLow = !state.ui.invLow;
+    renderInvList();
+  } else if (act === 'inv-cat') {
+    state.ui.invCat = btn.dataset.cat;
+    state.ui.invLow = false;
+    renderInvList();
+  } else if (act === 'customer-new') {
+    openCustomerModal();
+  } else if (act === 'customer-edit') {
+    openCustomerModal(getCustomer(btn.dataset.id));
+  } else if (act === 'customer-pay') {
+    openPaymentModal(btn.dataset.id);
+  } else if (act === 'customer-wa-debt') {
+    sendWhatsAppDebtTicket(btn.dataset.id);
+  } else if (act === 'send-wa-cart') {
+    sendWhatsAppTicket({
+      items: state.cart,
+      total: cartTotals().sub,
+      payMethod: state.payMethod,
+      paid: state.paid,
+      change: cartTotals().change,
+      customerId: state.creditCustomerId
     });
-  }
-  else if(act==='scan'){
-    const mode=btn.dataset.mode;
-    startScanner(code=>{
-      if(mode==='pos'){
-        state.ui.posSearch=code;renderView();
-        const p=state.products.find(x=>x.barcode===code);
-        if(p){
-          if(p.stock<=0)toast(`"${p.name}" está agotado`,'warn');
-          else{
-            const item=state.cart.find(i=>i.id===p.id);
-            if(item){item.qty=r3(item.qty+1);}else state.cart.push({id:p.id,name:p.name,price:p.price,cost:p.cost,qty:1});
-            save();renderCartAside();renderCartBar();toast(`Agregado: ${p.name}`);
-          }
-        }else toast(`Sin coincidencias para #${code}`,'info');
-      }else if(mode==='inv'){
-        state.ui.invSearch=code;renderView();
-      }
-    });
-  }
-  else if(act==='scan-field'){
-    const tid=btn.dataset.target;
-    startScanner(code=>{const input=$('#'+tid);if(input)input.value=code;});
-  }
-  else if(act==='seed-demo'){
-    confirmDialog('Cargar datos demo','Esto sobrescribirá tus datos actuales con la información de demostración.',()=>{
-      seedDemo();toast('Datos demo cargados');renderAll();
-    });
-  }
-  else if(act==='reset-all'){
-    confirmDialog('Borrar todo el sistema','¡ATENCIÓN! Se borrarán todos los productos, clientes, ventas y registros de forma permanente.',()=>{
-      state.products=[];state.sales=[];state.entries=[];state.customers=[];state.cart=[];save();toast('Sistema reiniciado','info');renderAll();
+  } else if (act === 'sale-wa') {
+    const s = state.sales.find(x => x.id === btn.dataset.id);
+    if (s) sendWhatsAppTicket(s);
+  } else if (act === 'sale-cancel') {
+    const s = state.sales.find(x => x.id === btn.dataset.id);
+    if (!s) return;
+    confirmDialog('Anular Venta', `¿Deseas anular esta venta de ${MXN(s.total)} y devolver los artículos al inventario?`, () => {
+      s.cancelled = true;
+      s.items.forEach(i => {
+        const p = getProduct(i.id);
+        if (p) p.stock = r3(p.stock + i.qty);
+      });
+      save();
+      toast('Venta anulada');
+      closeModal();
+      renderAll();
     });
   }
 });
 
-document.addEventListener('input',e=>{
-  const inp=e.target.dataset.input;if(!inp)return;
-  if(inp==='posSearch'){state.ui.posSearch=e.target.value;renderPosGrid();}
-  else if(inp==='invSearch'){state.ui.invSearch=e.target.value;renderInvList();}
-  else if(inp==='custSearch'){state.ui.custSearch=e.target.value;VIEWS.creditos();$('#view').innerHTML=VIEWS.creditos();}
-  else if(inp==='paid'){state.paid=num(e.target.value);renderCartAside();}
-  else if(inp==='creditCustomer'){state.creditCustomerId=e.target.value;const c=getCustomer(e.target.value);if(c&&c.phone)state.phone=c.phone;}
-  else if(inp==='phone'){state.phone=e.target.value;}
-  else if(inp==='qty'){
-    const id=e.target.dataset.id,item=state.cart.find(i=>i.id===id),p=getProduct(id);
-    if(item&&p){
-      const val=num(e.target.value);
-      if(val>p.stock){toast('Stock máximo superado','warn');item.qty=p.stock;e.target.value=p.stock;}
-      else item.qty=val;
-      if(item.qty<=0)state.cart=state.cart.filter(i=>i.id!==id);
-      save();renderCartAside();renderCartBar();
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (t.dataset.input === 'posSearch') {
+    state.ui.posSearch = t.value;
+    renderPosGrid();
+  } else if (t.dataset.input === 'invSearch') {
+    state.ui.invSearch = t.value;
+    renderInvList();
+  } else if (t.dataset.input === 'custSearch') {
+    state.ui.custSearch = t.value;
+    renderView();
+  } else if (t.dataset.input === 'paid') {
+    state.paid = num(t.value);
+    renderCartAside();
+  } else if (t.dataset.input === 'phone') {
+    state.phone = t.value;
+  } else if (t.dataset.input === 'creditCustomer') {
+    state.creditCustomerId = t.value;
+  } else if (t.dataset.input === 'repMonth') {
+    state.ui.repMonth = t.value;
+    renderView();
+  } else if (t.dataset.input === 'qty') {
+    const item = state.cart.find(i => i.id === t.dataset.id);
+    if (item) {
+      item.qty = Math.max(1, num(t.value));
+      renderCartAside();
+      renderCartBar();
     }
   }
-  else if(inp==='repMonth'){state.ui.repMonth=e.target.value;renderView();}
 });
 
-/* ── INICIALIZACIÓN ───────────────────────────────────────── */
-function init(){
-  try{
-    const raw=localStorage.getItem(KEY);
-    if(raw){
-      const parsed=JSON.parse(raw);
-      state.products=parsed.products||[];
-      state.sales=parsed.sales||[];
-      state.entries=parsed.entries||[];
-      state.customers=parsed.customers||[];
-      state.cart=parsed.cart||[];
-      state.settings={...state.settings,...(parsed.settings||{})};
-    }else seedDemo();
-  }catch(e){seedDemo();}
-  renderAll();
+/* ── INICIALIZACIÓN DE LA APLICACIÓN ─────────────────────── */
+window.addEventListener('DOMContentLoaded', () => {
+  if (state.products.length === 0) {
+    seedDemo();
+  }
+  renderApp();
+});
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  if (state.products.length === 0) {
+    seedDemo();
+  }
+  renderApp();
 }
-init();
 </script>
 </body>
 </html>
